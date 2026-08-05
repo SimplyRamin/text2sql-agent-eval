@@ -1,0 +1,20 @@
+[project]
+name = "text2sql-agent-eval"
+version = "0.1.0"
+description = "Text-to-SQL agent over an Olist warehouse, evaluated for execution accuracy across architectures."
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.5.5",
+    "langchain-core>=1.5.3",
+    "langgraph>=1.2.10",
+    "litellm>=1.95.0",
+    "pandas>=3.0.5",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+    "tiktoken>=0.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
