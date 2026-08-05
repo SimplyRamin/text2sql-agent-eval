@@ -32,8 +32,8 @@ through `uv add <package>` so the lockfile stays authoritative.
 ## Working across two machines (Windows work PC / macOS home)
 
 This project develops across two machines with no shared filesystem. The
-mechanism is: **git is the sync layer, `uv.lock` is the environment guarantee,
-`README.md` + `DECISIONS.md` are the design-state guarantee.**
+mechanism is: **git is the sync layer, `uv.lock` is the environment
+guarantee, `README.md` + `DECISIONS.md` are the design-state guarantee.**
 
 **Every session, either machine:**
 1. `git pull` before doing anything
@@ -43,27 +43,25 @@ mechanism is: **git is the sync layer, `uv.lock` is the environment guarantee,
 5. `git add -A && git commit -m "..." && git push` before closing the laptop —
    don't leave uncommitted work sitting on one machine only
 
-**What's Mac-only:** anything requiring a live call to local Ollama —
-Phase 1 verification, actual baseline/agent runs, anything where you need to
-see real model output rather than just correct plumbing. Ollama + Qwen2.5-Coder-7B
-only run on the M3 Pro.
-
-**What's fine on Windows:** scaffolding, `evals/questions.yaml` authoring,
-`evals/scorer.py` logic (test it against fixture result sets, no LLM needed),
-`src/budget.py` and `src/cache.py` logic and unit tests, LangGraph node
-*structure* (state schema, conditional edges) using a stub/fake LLM function
-in tests rather than a real one, and all chat/design work. Basically: anything
-that doesn't need to observe real model behavior.
+**Both machines run real local inference.** Work PC (i7-12700K, 32GB RAM,
+RTX 3050) runs Ollama with CUDA acceleration; Qwen2.5-Coder-7B at Q4
+quantization is ~4.7GB and fits the GPU with headroom. Mac (M3 Pro) runs it
+via Metal. Confirm GPU offload on either machine with `ollama ps` before
+trusting a run — if it falls back to CPU, generation will be visibly slower
+and that's worth catching before you attribute a timing result to the model
+rather than the hardware.
 
 **Cache doesn't sync — that's intentional but has one sharp edge.**
 `cache/` is gitignored. For local Ollama calls that's fine, they're free to
-regenerate. For Phase 7's hosted comparison runs, a non-synced cache means
-switching machines mid-run risks re-paying for calls already made on the other
-machine. Do Phase 7 (hosted runs) in one sitting, on one machine.
+regenerate on either machine. For Phase 7's hosted comparison runs, a
+non-synced cache means switching machines mid-run risks re-paying for calls
+already made on the other machine. Do Phase 7 (hosted runs) in one sitting,
+on one machine.
 
-**`.env` is per-machine, never committed.** Windows PC's `.env` can simply
-omit `OLLAMA_HOST` — `src/llm.py` should treat that as "local model not
-available here" rather than erroring the whole program.
+**`.env` is per-machine, never committed.** Both machines set `OLLAMA_HOST`
+and `OLLAMA_MODEL` now — no machine-specific fallback needed for local
+inference anymore. `API_BASE_URL` / `API_KEY` for the hosted reseller only
+get filled in when you're actually doing a Phase 7 run.
 
 ## Build order
 
