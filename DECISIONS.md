@@ -13,6 +13,25 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-08-22 — q069 non-deterministic ORDER BY, scorer self-check caught it
+Decision: q069 (ordered: true, ORDER BY order_count DESC LIMIT 5) had no
+tiebreaker. Empirically confirmed non-determinism: two identical executions
+returned the same 5 customers but with two order_count=7 ties swapped in
+position. Fixed with a secondary sort key (ORDER BY order_count DESC,
+c.customer_unique_id ASC), reverified deterministic across 3 runs. Scanned
+all 15 other ordered:true questions; 12 had ORDER BY+LIMIT worth checking,
+3 were structurally safe by construction (sort key unique by GROUP BY or
+filter scope) and skipped with reasoning. All 12 checked had zero tied
+sort-key values several rows past their cutoffs, confirmed empirically
+(run twice, byte-identical) rather than trusting the deduction alone.
+Why: caught by scorer.score_question run against ground-truth SQL as its
+own "agent answer" for all 100 questions — should be 100% by construction.
+Non-deterministic ground truth can't be reliably matched by any agent,
+correct or not, and would have silently penalized every architecture
+equally without ever looking suspicious in results.
+Status: fixed. Full self-comparison harness passes 100/100 across 5
+consecutive runs.
+
 ### 2026-08-22 — Fan-out bug scan: q054 fixed, q048/q060 confirmed safe as-is
 Decision: scanned all 100 questions for the two-one-to-many-table JOIN shape
 that caused the q054 bug (joining order_payments and order_reviews directly

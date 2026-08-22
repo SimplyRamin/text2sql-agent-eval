@@ -416,7 +416,7 @@
   tier: 4
   category: customer
   question: "What are the order counts for the 5 most frequent customers (by customer_unique_id)? List from most orders to fewest."
-  sql: "SELECT c.customer_unique_id, COUNT(*) AS order_count FROM orders o JOIN customers c ON o.customer_id = c.customer_id GROUP BY c.customer_unique_id ORDER BY order_count DESC LIMIT 5;"
+  sql: "SELECT c.customer_unique_id, COUNT(*) AS order_count FROM orders o JOIN customers c ON o.customer_id = c.customer_id GROUP BY c.customer_unique_id ORDER BY order_count DESC, c.customer_unique_id ASC LIMIT 5;"
   ordered: true
 - id: q070
   tier: 4
