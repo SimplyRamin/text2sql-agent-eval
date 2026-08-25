@@ -13,6 +13,22 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-08-25 — Phase 4 baseline complete: 59/100 (59%)
+Decision: dumb single-call baseline (full schema in prompt, no retrieval,
+no self-correction, temperature=0) scored 59/100 against qwen2.5-coder:7b
+local. Tier breakdown: T1 10/10 (100%), T2 19/25 (76%), T3 8/25 (32%),
+T4 13/25 (52%), T5 9/15 (60%). Fixed a real extract_sql() bug during
+review (`!= 1` should have been `!= -1`, would have silently emptied any
+SQL response without a trailing semicolon) before this run.
+Why this number matters: it's the reference point Phase 5's LangGraph
+agent (schema retrieval + capped self-correction) gets measured against.
+Notable: T3 (multi-table joins) is the weakest tier, worse than T4
+(aggregation) — several Binder Errors show the model losing track of
+which alias maps to which table once 3+ tables are joined. Worth
+revisiting in Phase 8's failure taxonomy, not investigated further now.
+Status: Phase 4 closed. results/baseline_qwen2.5-coder-7b_<timestamp>.csv
+committed as the permanent Phase 4 reference run.
+
 ### 2026-08-22 — q069 non-deterministic ORDER BY, scorer self-check caught it
 Decision: q069 (ordered: true, ORDER BY order_count DESC LIMIT 5) had no
 tiebreaker. Empirically confirmed non-determinism: two identical executions
