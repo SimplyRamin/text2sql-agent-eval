@@ -1,0 +1,21 @@
+id,tier,category,correct,error,generated_sql
+q001,1,sales,True,,"SELECT COUNT(order_item_id) AS total_order_line_items
+FROM order_items;"
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customer_count
+FROM customers;"
+q003,1,delivery,True,,"SELECT COUNT(order_id) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';"
+q004,1,payments,True,,"SELECT AVG(payment_value) AS average_payment_value
+FROM order_payments;"
+q005,1,product,True,,"SELECT COUNT(DISTINCT product_category_name) AS distinct_product_categories
+FROM products;"
+q006,1,seller,True,,"SELECT COUNT(seller_id) AS seller_count
+FROM sellers
+WHERE seller_state = 'SP';"
+q007,1,reviews,True,,SELECT COUNT(*) FROM order_reviews WHERE review_score = 5;
+q008,1,product,True,,SELECT COUNT(*) FROM products WHERE product_category_name IS NULL;
+q009,1,sales,True,,"SELECT SUM(freight_value) AS total_freight_value
+FROM order_items;"
+q010,1,delivery,True,,"SELECT MIN(order_purchase_timestamp) AS earliest_order_purchase_timestamp
+FROM orders;"

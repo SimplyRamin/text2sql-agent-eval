@@ -1,0 +1,8 @@
+id,tier,category,correct,error,generated_sql
+q001,1,sales,True,,"SELECT COUNT(order_item_id) AS total_order_line_items
+FROM order_items;"
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customer_count
+FROM customers;"
+q003,1,delivery,True,,"SELECT COUNT(order_id) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';"
