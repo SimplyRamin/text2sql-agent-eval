@@ -13,6 +13,34 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-08-31 — Phase 5 complete: agent 58/100 vs baseline 59/100
+Decision: LangGraph agent (schema retrieval + capped self-correction,
+retry temperature=0.4) scored 58/100, both fixes applied (cache-bypass on
+non-zero temperature; retrieval keyword underscore-boundary bug). Tier
+breakdown: T1 100% (=), T2 64% (baseline 76%, -12pp), T3 40% (baseline
+32%, +8pp), T4 52% (=), T5 60% (=).
+Why roughly at parity overall: the agent clearly worked on the tier it
+targeted — T3 (3+-table joins) improved the most, consistent with the
+design intent (narrower schema reduces alias confusion; error-feedback
+retries recover real Binder Errors, confirmed directly on q029/q040/q049
+across runs). T2 regressed because baseline's always-full-schema
+approach was, for two-table joins specifically, already sufficient —
+narrowing never helps when nothing was missing, and can only add risk.
+Of T2's 6 regressions, 4 (q011/q016/q028/q081) were confirmed via direct
+inspection to have fully correct retrieved schema; their failures are
+model reasoning errors (wrong filter, wrong case sensitivity) that
+resampling at temperature=0.4 could not reliably fix, since nothing in
+the prompt/schema tells the model what it doesn't know.
+Also observed: retry temperature=0.4 makes results non-deterministic
+run-to-run on close cases (q029 flipped PASS→FAIL between two runs with
+identical code) — an inherent, expected property of trading determinism
+for exploration on retries, not a bug. Single-run numbers should be
+treated as having some variance around them, not as exact.
+Status: Phase 5 closed. results/agent_qwen2.5-coder-7b_20260831_161251.csv
+committed as the reference run. Not pursuing further tuning — the
+tier-3 improvement and honestly-characterized tier-2 regression are a
+more defensible finding than chasing a higher aggregate number.
+
 ### 2026-08-31 — retrieve_tables underscore boundary bug fixed
 Decision: _keyword_matches used \bkeyword\b, which fails to match a keyword
 that's a prefix of an underscored column-style word (e.g. "freight" does
