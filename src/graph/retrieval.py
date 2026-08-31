@@ -43,7 +43,7 @@ KEYWORD_TABLES: dict[tuple[str, ...], list[str]] = {
 def _keyword_matches(keyword: str, text: str) -> bool:
     if " " in keyword:
         return keyword in text
-    return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
+    return re.search(rf"\b{re.escape(keyword)}(\b|_)", text) is not None
 
 
 def retrieve_tables(question_text: str) -> list[str]:

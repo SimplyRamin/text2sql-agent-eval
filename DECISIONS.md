@@ -13,6 +13,23 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-08-31 — retrieve_tables underscore boundary bug fixed
+Decision: _keyword_matches used \bkeyword\b, which fails to match a keyword
+that's a prefix of an underscored column-style word (e.g. "freight" does
+not match inside "freight_value", since \b requires a boundary and "_" is
+a word character in regex). Fixed to \bkeyword(\b|_) — matches on a normal
+boundary OR immediately before an underscore.
+Why: found via evidence, not inspection — q034 ("total freight_value
+charged by sellers...") retrieved only ['sellers'], missing order_items
+entirely, causing a real accuracy regression vs baseline. Confirmed fix
+via before/after retrieve_tables() output on all 100 questions: 2 of the
+6 known tier-2/4/5 regressions (q034, q096) had their retrieved-table set
+change and gain a needed table; the other 4 regressions (q011, q016, q028,
+q081) already had correct retrieval before this fix, confirming their
+failures are unrelated to retrieval — model-quality issues instead (q011
+already diagnosed: case-sensitivity + unrequested filter).
+Status: fixed and verified against the full question set.
+
 ### 2026-08-31 — Phase 5 partial validation (--limit 40): fix helps, tier 2 still trails baseline
 Decision: with the cache-bypass-on-nonzero-temperature fix confirmed
 working, re-ran --limit 40. q029 recovered via retry (previously failed
