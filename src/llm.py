@@ -28,9 +28,12 @@ def complete(
     provider: str = "local",
     temperature: float = 0.0,
 ) -> dict:
-    cached = cache_get(model, temperature, prompt)
-    if cached is not None:
-        return {**cached, "cached": True, "cost": 0.0}
+    use_cache = temperature == 0.0
+
+    if use_cache:
+        cached = cache_get(model, temperature, prompt)
+        if cached is not None:
+            return {**cached, "cached": True, "cost": 0.0}
 
     if provider == "local":
         if not os.getenv("OLLAMA_HOST"):
@@ -56,7 +59,8 @@ def complete(
         }
 
         result = {"text": text, "usage": usage, "cost": 0.0}
-        cache_set(model, temperature, prompt, result)
+        if use_cache:
+            cache_set(model, temperature, prompt, result)
         return {**result, "cached": False}
 
 
@@ -93,7 +97,8 @@ def complete(
             "usage": {"in_tokens": in_tokens, "out_tokens": out_tokens},
             "cost": cost,
         }
-        cache_set(model, temperature, prompt, result)
+        if use_cache:
+            cache_set(model, temperature, prompt, result)
         return {**result, "cached": False}
 
     raise ValueError(f"Unknown provider: {provider!r}")

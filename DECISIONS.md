@@ -13,6 +13,66 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-08-31 — Phase 5 partial validation (--limit 40): fix helps, tier 2 still trails baseline
+Decision: with the cache-bypass-on-nonzero-temperature fix confirmed
+working, re-ran --limit 40. q029 recovered via retry (previously failed
+all 3 attempts under the cache bug) — real evidence the temperature fix
+works. Tier 2 improved 60%→64% but remains below baseline's 76% on the
+same 25 questions. Tier 1 identical to baseline (100%). Tier 3 sample too
+small (5 questions) to compare meaningfully yet.
+Why the remaining gap is not being chased further right now: spot-checked
+q011 specifically — the model's failure is a genuine knowledge gap (adds
+an unrequested filter, wrong case for a string literal it can't know is
+stored lowercase) that resampling can surface variety on but not reliably
+fix, since nothing in the prompt/schema tells the model the actual
+convention. This is a real, bounded limitation of schema-retrieval +
+self-correction for semantically-wrong-but-valid SQL, distinct from its
+clear effectiveness against execution errors (q029, q040). Worth stating
+directly in Phase 8's failure taxonomy rather than further tuning
+generate_sql for this specific case.
+Status: fix validated. Proceeding to the full 100-question run as the
+Phase 5 reference result, tier 2 regression included honestly.
+
+### 2026-08-31 — Retry temperature fix confirmed working; q011 remains a case-sensitivity gap
+Decision: with the cache fix from the prior entry applied and cache/ cleared,
+confirmed real sampling now occurs on retries (temperature=0.4) — q011's
+attempt 2/3 SQL genuinely differs from attempt 1, no longer a frozen replay.
+q011 itself still fails after all 3 attempts: the model persistently adds a
+redundant customer_city filter and capitalizes 'Rio de Janeiro', which
+doesn't match the warehouse's lowercase-stored city values. Also observed:
+temperature=0.0 output for the same prompt changed across separate runs
+after a cache clear (dropped a column alias) — expected GPU non-determinism
+in llama.cpp/cuBLAS kernels, not a code bug, worth remembering if any
+future result looks "impossible" to reproduce exactly.
+Why this matters: confirms two distinct self-correction failure modes.
+Execution errors (q040's Binder Error) are recoverable — the model gets a
+concrete, actionable signal. Semantically-wrong-but-valid queries (q011)
+are much harder to recover via resampling alone, because nothing in the
+prompt tells the model *what* it doesn't know (here: case-sensitivity
+convention). This is a real, bounded limitation of this design, not a bug
+to keep chasing — worth stating plainly in Phase 8's failure taxonomy.
+Status: fix confirmed correct. No further changes to generate_sql's
+retry logic planned for Phase 5.
+
+### 2026-08-31 — Cache bypassed for non-zero temperature calls
+Decision: src/llm.py's complete() now skips both cache_get and cache_set
+when temperature != 0.0. Previously the disk cache (keyed on
+model|temperature|prompt) applied unconditionally.
+Why: discovered while debugging why Phase 5's retry loop (temperature=0.4
+on retries, to let self-correction actually explore a different answer
+after a wrong-but-valid-SQL failure) produced byte-identical SQL across
+all 3 attempts on q011. Root cause: the cache's model|temperature|prompt
+key assumes (model, temperature, prompt) is a pure function — true at
+temperature=0, false at temperature=0.4, where repeat calls should
+legitimately sample different completions. Once a temp=0.4 call was
+cached once, every later call with the same prompt silently replayed
+that one frozen sample forever, making "randomness" deterministic by
+accident. This wasn't caught earlier because temperature=0 has been the
+project-wide convention since Phase 0 — this is the first code path that
+ever calls complete() with a non-zero temperature.
+Status: fixed in llm.py. Must clear cache/ before re-testing to remove
+already-poisoned entries from before the fix.
+
 ### 2026-08-25 — Phase 4 baseline complete: 59/100 (59%)
 Decision: dumb single-call baseline (full schema in prompt, no retrieval,
 no self-correction, temperature=0) scored 59/100 against qwen2.5-coder:7b
