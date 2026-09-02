@@ -39,6 +39,23 @@ KEYWORD_TABLES: dict[tuple[str, ...], list[str]] = {
     ],
 }
 
+ORDER_BRIDGE_GROUPS = [
+    ("order_items",),
+    ("order_payments",),
+    ("order_reviews",),
+]
+
+
+def _add_order_bridge(retrieved: list[str]) -> list[str]:
+    retrieved_set = set(retrieved)
+    has_customers = "customers" in retrieved_set or "stg_customers" in retrieved_set
+    has_order_child = any(
+        retrieved_set & set(group) for group in ORDER_BRIDGE_GROUPS
+    )
+    if has_customers and has_order_child and "orders" not in retrieved_set:
+        return retrieved + ["orders", "stg_orders"]
+    return retrieved
+
 
 def _keyword_matches(keyword: str, text: str) -> bool:
     if " " in keyword:
@@ -57,4 +74,9 @@ def retrieve_tables(question_text: str) -> list[str]:
     if not retrieved:
         return ALL_TABLES
 
-    return retrieved
+    return _add_order_bridge(retrieved)
+
+
+def count_entity_groups(retrieved_tables: list[str]) -> int:
+    retrieved_set = set(retrieved_tables)
+    return sum(1 for tables in KEYWORD_TABLES if retrieved_set & set(tables))

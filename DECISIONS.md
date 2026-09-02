@@ -13,6 +13,37 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-02 — retrieve_tables missing orders as implicit join bridge
+Decision: retrieve_tables() had no way to surface `orders`/`stg_orders`
+for questions that mention customers and an order-child table (payments,
+items, reviews) but never use an "order"-related word directly (e.g. q040:
+"customers... paid using 'boleto'" — no word triggers the orders group,
+even though customers->orders->order_payments is the only real join path).
+Added _add_order_bridge(): if customers and any order-child table are both
+retrieved but orders isn't, inject orders+stg_orders.
+Why: found while validating Phase 6's routing signal (count_entity_groups)
+against the full 100 questions, before writing any Phase 6 prompt code.
+q040 is one of the three flagship cluster-1 examples Phase 6's FK_HINTS/
+join-path-reasoning prompt is meant to fix — but no prompt design can work
+around a schema that's missing the bridge table entirely. This is a
+retrieval-completeness gap, structurally different from Phase 5's
+underscore-boundary regex bug: it's about implicit join topology, not
+keyword-matching precision.
+Status: fixed. Must re-run the full retrieve_tables check against all 100
+questions to confirm q040 (and any similar case) now includes orders, and
+re-check count_entity_groups' >=3 distribution since some questions'
+group counts will shift by +1.
+
+### 2026-08-31 — Phase 6 open questions resolved
+Decision: CLI shape is a --routed flag on src/graph/run.py (not a
+separate script) — GraphState's new fields apply identically either way,
+and it means re-running the plain Phase 5 agent also gets cost/latency
+data for free. Router threshold (>=3 entity groups via
+count_entity_groups) stays provisional until checked against the full
+100-question distribution once the function exists — adjust only if that
+check reveals real miscategorization, not preemptively.
+Status: decided. Ready to implement once the plan reprint is clean.
+
 ### 2026-08-31 — Phase 5 complete: agent 58/100 vs baseline 59/100
 Decision: LangGraph agent (schema retrieval + capped self-correction,
 retry temperature=0.4) scored 58/100, both fixes applied (cache-bypass on
