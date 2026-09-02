@@ -21,7 +21,10 @@ DEDUP_CHECKLIST = (
     "relationship with the same parent table (e.g. both order_payments "
     "and order_reviews joined to orders), use COUNT(DISTINCT ...) or a "
     "deduplicating subquery. A plain COUNT(*) or un-deduplicated AVG/SUM "
-    "will double-count rows."
+    "will double-count rows. When multiple joined tables share a column "
+    "name (e.g. order_id appears in both orders and order_payments), "
+    "always qualify it with the table name or alias — e.g. "
+    "COUNT(DISTINCT orders.order_id), never COUNT(DISTINCT order_id)."
 )
 
 CATEGORY_NAME_NOTE = (

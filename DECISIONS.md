@@ -13,6 +13,92 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-02 — q086 root cause confirmed: unrequested status filter contradicts explicit question wording
+Decision: q086 ground truth is a plain SELECT COUNT(*) FROM orders (no
+filter). The model added WHERE order_status IN ('created', 'processing',
+'shipped', 'delivered', 'unavailable') — a filter never requested, and
+one that appears to omit 'canceled' despite the question explicitly
+stating canceled orders must be included ("including ones that were
+never delivered or were canceled"). This is the same failure family as
+Phase 4 baseline's q020 (over-engineering: adding logic the question
+didn't ask for) and distinct from the join/dedup/qualification bugs
+found and fixed earlier today.
+Status: not fixed — same category as q011's case-sensitivity gap,
+a model-knowledge/instruction-following issue no prompt scaffolding
+change was targeted at. Noted for Phase 8's failure taxonomy.
+
+### 2026-09-02 — Phase 6 complete: 63/100, best result across all three phases
+Decision: Phase 6 routed agent (schema retrieval + capped self-correction +
+complexity-based routing to specialist join prompts) scored 63/100 after
+the dedup-checklist column-qualification fix. Confirmed q086/q090's
+"Ambiguous reference" Binder Errors are gone — the model now avoids the
+ambiguity by restructuring the query (dropping unneeded joins / using
+GROUP BY) rather than needing an explicit qualification; both still fail,
+but for different, unremarkable reasons, not the bug that was fixed.
+Full comparison vs baseline (59%) and Phase 5 (58%):
+T1 100/100/100 (=), T2 76/64/76 (baseline parity, +12pp vs Phase 5),
+T3 32/40/52 (+20pp vs baseline, +12pp vs Phase 5 — the design's original
+target, now the clearest success across all three phases), T4 52/52/44
+(-8pp vs both, stable across two Phase 6 runs — a real, persistent
+regression not yet root-caused), T5 60/60/66.7 (+6.7pp vs both).
+Overall: 63% vs baseline 59% and Phase 5 58% — first clean win across
+the board, not just on the targeted tier.
+Known open item, not investigated further now: tier 4 regression is
+consistent and unexplained. Worth a targeted look in Phase 8's failure
+taxonomy, alongside the q013-style "unnecessary DISTINCT on a safe query"
+pattern noted earlier, which was not further chased today.
+Status: Phase 6 closed. results/agent_qwen2.5-coder-7b_20260902_120509.csv
+committed as the reference run.
+
+### 2026-09-02 — Phase 6 full run: 60/100, tier 3 +20pp vs baseline, tier 4/5 regressed
+Decision: Phase 6 routed agent scored 60/100 vs baseline 59% and Phase 5's
+58%. Tier 3 (the design's original target) improved to 52% — +20pp vs
+baseline, +12pp vs Phase 5 alone. Tier 4 (44%, -8pp vs Phase 5) and tier 5
+(53.3%, -6.7pp) regressed, both traced to the "join" route specifically.
+Root cause 1 (q086, q090): the dedup checklist correctly prompts
+COUNT(DISTINCT ...) but didn't require column qualification — with
+multiple joined tables sharing a column name (order_id in both orders and
+order_payments), an unqualified COUNT(DISTINCT order_id) is genuinely
+ambiguous SQL. Fixed by adding an explicit qualification instruction to
+DEDUP_CHECKLIST.
+Root cause 2 (q064): the join-path-reasoning instruction appears to have
+pushed the model toward overcomplicating a query with an unnecessary
+subquery, which then had its own column-scoping bug (referenced a column
+never selected by the subquery). Not fixed — noted as a real, harder-to-
+prevent side effect of encouraging explicit reasoning: it can also
+encourage unnecessary structural complexity. No prompt change made for
+this one; would need more evidence before altering the reasoning
+instruction, since it's also directly responsible for tier 3's gains.
+Why not revert the dedup checklist instead of patching it: q016 (cluster
+3) and multiple tier-3 gains are directly attributable to Phase 6's
+prompt interventions working correctly; the qualification gap is a
+precise, narrow fix rather than a sign the whole approach is wrong.
+Status: dedup checklist fixed. Re-running full 100 to confirm q086/q090
+resolve and tier 4/5 partially recover, before treating any number as
+final.
+
+### 2026-09-02 — Phase 6 --limit 20 dry-run: real findings, not just pass/fail
+Decision: q016 (cluster 3, category_translation over-join) now passes —
+confirms the ungated category-name note works as designed. Of 3 join-route
+failures (q011/q013/q019): q011 is the already-known non-join model-
+knowledge gap (case sensitivity), correctly routed to "join" by entity-
+group count but its actual failure is unrelated to joins. q013 and q019
+are new findings: q013's join is fully correct but the model added an
+unnecessary COUNT(DISTINCT ...) where plain COUNT(*) was right — likely
+the dedup checklist being applied defensively even on single-join,
+no-fan-out-risk queries. q019 added an unneeded third join (orders) not
+present in ground truth, then miscounted grain (COUNT(DISTINCT order_id)
+instead of COUNT(DISTINCT product_id)) — a self-inflicted join-path error
+FK_HINTS didn't prevent, since the extra join wasn't necessary at all.
+Why this matters: the dedup checklist may have a false-positive cost
+(over-applying DISTINCT on safe queries) that wasn't visible in the
+original 3-cluster analysis, since that analysis only looked at cases
+where dedup was actually needed and missing. Worth watching in the full
+100-question run whether this pattern recurs, before concluding whether
+the checklist's benefit (fixing real fan-out) outweighs this cost.
+Status: noted from --limit 20. Proceeding to full 100-question run to see
+if this is a real pattern or isolated to these two questions.
+
 ### 2026-09-02 — wall_clock_ms includes cache hits; note for reporting
 Decision: no code change — documenting a real interpretive caveat.
 wall_clock_ms measures actual elapsed time per question this run,

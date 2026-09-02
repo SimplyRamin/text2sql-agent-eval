@@ -1,0 +1,66 @@
+id,tier,category,correct,error,generated_sql,retries_used,initial_retrieved_tables,route,cost,in_tokens,out_tokens,llm_latency_ms,wall_clock_ms
+q001,1,sales,True,,"SELECT COUNT(order_item_id) AS total_order_line_items
+FROM order_items;",0,"orders,stg_orders,order_items",simple,0.0,214,21,10592.456000000311,58.97800000002462
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers
+FROM customers;",0,"customers,stg_customers",simple,0.0,135,22,989.0969000007317,84.4108999999662
+q003,1,delivery,True,,"SELECT COUNT(order_id) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';",0,"orders,stg_orders",simple,0.0,177,26,1120.6703999996535,56.65390000012849
+q004,1,payments,True,,"SELECT AVG(payment_value) AS average_payment_value
+FROM order_payments;",0,order_payments,simple,0.0,112,19,7332.621800000197,7416.764999999941
+q005,1,product,True,,"SELECT COUNT(DISTINCT product_category_name) AS distinct_product_categories
+FROM products;",0,"products,category_translation",simple,0.0,213,22,1252.4601999994047,1322.9684999996607
+q006,1,seller,True,,"SELECT COUNT(seller_id) AS seller_count
+FROM sellers
+WHERE seller_state = 'SP';",0,"customers,stg_customers,sellers",simple,0.0,159,25,1190.3621999999814,1270.9826999998768
+q007,1,reviews,True,,SELECT COUNT(*) FROM order_reviews WHERE review_score = 5;,0,order_reviews,simple,0.0,121,18,862.3610000004192,928.0026999995243
+q008,1,product,True,,"SELECT COUNT(*) 
+FROM products 
+WHERE product_category_name IS NULL;",0,"products,category_translation",simple,0.0,209,19,906.5135000000737,978.7389000002804
+q009,1,sales,True,,"SELECT SUM(freight_value) AS total_freight_value
+FROM order_items;",0,"orders,stg_orders,order_items",simple,0.0,214,22,1040.1333999998315,1104.01340000044
+q010,1,delivery,True,,"SELECT MIN(order_purchase_timestamp) AS earliest_order_purchase_timestamp
+FROM orders;",0,"orders,stg_orders",simple,0.0,178,20,927.8511000002254,992.05449999954
+q011,2,customer,False,,"SELECT COUNT(DISTINCT o.order_id) AS order_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_city = 'Rio de Janeiro' AND c.customer_state = 'RJ';",2,"orders,stg_orders,customers,stg_customers",join,0.0,1964,471,22554.374800000915,22797.676999999567
+q012,2,product,True,,"SELECT AVG(order_items.price) AS average_price
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'cama_mesa_banho';",0,"orders,stg_orders,order_items,products,category_translation",join,0.0,490,268,13326.969599999757,13431.35859999984
+q013,2,seller,False,,"SELECT COUNT(DISTINCT oi.order_item_id) AS distinct_order_items_sold_by_mg_sellers
+FROM sellers s
+JOIN order_items oi ON s.seller_id = oi.seller_id
+WHERE s.seller_state = 'MG';",2,"orders,stg_orders,order_items,sellers",join,0.0,2127,849,41596.88300000016,41823.5623999999
+q014,2,reviews,True,,"SELECT COUNT(DISTINCT o.order_id) 
+FROM orders o
+JOIN order_reviews r ON o.order_id = r.order_id
+WHERE o.order_status = 'delivered' AND r.review_score = 1;",1,"orders,stg_orders,order_reviews",join,0.0,1072,196,10843.89629999896,11039.891699999316
+q015,2,payments,True,,"SELECT COUNT(*) 
+FROM orders o
+JOIN order_payments p ON o.order_id = p.order_id
+WHERE o.order_status = 'delivered' AND p.payment_type = 'boleto';",0,"orders,stg_orders,order_payments",simple,0.0,209,44,4027.3433000002115,4130.626800000755
+q016,2,sales,True,,"SELECT SUM(order_items.price) AS total_revenue
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'informatica_acessorios';",0,"order_items,products,category_translation",simple,0.0,259,45,2126.5588000005664,2207.3075999996945
+q017,2,delivery,True,,"SELECT COUNT(o.order_id)
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'BA'
+  AND o.order_delivered_customer_date > o.order_estimated_delivery_date;",0,"orders,stg_orders,customers,stg_customers",simple,0.0,239,51,2264.0260999996826,2356.977299999926
+q018,2,customer,True,,"SELECT COUNT(DISTINCT c.customer_unique_id) AS distinct_customers_with_canceled_orders
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE o.order_status = 'canceled';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,234,49,2132.8947999991215,2239.467600000353
+q019,2,product,False,,"SELECT COUNT(DISTINCT order_items.order_id)
+FROM order_items
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name IS NULL;",2,"orders,stg_orders,order_items,products,category_translation",join,0.0,2225,688,33228.507900001205,33467.873900000995
+q020,2,seller,True,,"SELECT COUNT(DISTINCT oi.seller_id) AS distinct_sellers
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+JOIN category_translation ct ON p.product_category_name = ct.product_category_name
+WHERE p.product_category_name = 'utilidades_domesticas';",1,"order_items,products,category_translation,sellers",join,0.0,1293,627,30430.555099999765,30600.05049999927
