@@ -4,6 +4,7 @@
 #                            Ferdos.ramin@gmail.com | simplyramin.github.io
 # =================================================================================================
 import os
+import time
 
 import litellm
 from dotenv import load_dotenv
@@ -41,12 +42,14 @@ def complete(
                 "OLLAMA_HOST not set - local inference unavailable on this machine"
             )
 
+        start_time = time.perf_counter()
         response = litellm.completion(
             model=f"ollama/{model}",
             api_base=os.getenv("OLLAMA_HOST"),
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
+        latency_ms = (time.perf_counter() - start_time) * 1000
 
         assert isinstance(response, litellm.ModelResponse)
         usage_info = response.usage # type: ignore[attr-defined]
@@ -58,7 +61,7 @@ def complete(
             "out_tokens": usage_info.completion_tokens,
         }
 
-        result = {"text": text, "usage": usage, "cost": 0.0}
+        result = {"text": text, "usage": usage, "cost": 0.0, "latency_ms": latency_ms}
         if use_cache:
             cache_set(model, temperature, prompt, result)
         return {**result, "cached": False}
@@ -72,6 +75,7 @@ def complete(
         if model not in PRICING:
             raise RuntimeError(f"No pricing entry for hosted model '{model}' - add it to PRICING")
 
+        start_time = time.perf_counter()
         response = litellm.completion(
             model=f"openai/{model}",
             api_base=os.getenv("API_BASE_URL"),
@@ -80,6 +84,7 @@ def complete(
             messages=[{"role": "user", "content": prompt}],
             num_retries=2,
         )
+        latency_ms = (time.perf_counter() - start_time) * 1000
 
         assert isinstance(response, litellm.ModelResponse)
         usage_info = response.usage # type: ignore[attr-defined]
@@ -96,6 +101,7 @@ def complete(
             "text": text,
             "usage": {"in_tokens": in_tokens, "out_tokens": out_tokens},
             "cost": cost,
+            "latency_ms": latency_ms,
         }
         if use_cache:
             cache_set(model, temperature, prompt, result)

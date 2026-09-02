@@ -13,6 +13,23 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-02 — wall_clock_ms includes cache hits; note for reporting
+Decision: no code change — documenting a real interpretive caveat.
+wall_clock_ms measures actual elapsed time per question this run,
+including cache hits (near-instant) for temperature=0 first-attempts that
+match a previous run's cached prompt. This is correct behavior, not a
+bug — confirmed by re-running --limit 3 with a cleared cache: mean jumped
+from 73ms (cached) to 4325ms (fresh calls).
+Why this matters for interpretation, not code: the eventual Phase 6/7
+latency comparison should either (a) always run against a cleared cache
+when latency is the metric being reported, or (b) report cache hit rate
+alongside wall-clock so a fast mean isn't misread as "the agent is fast"
+when it's actually "most of this run was replayed from a previous run."
+No decision needed now on which — just flagging so the full-100 run isn't
+reported without this caveat attached.
+Status: noted, no code change. Will clear cache before the real Phase 6
+full-run comparison to get honest fresh-call latency numbers.
+
 ### 2026-09-02 — retrieve_tables missing orders as implicit join bridge
 Decision: retrieve_tables() had no way to surface `orders`/`stg_orders`
 for questions that mention customers and an order-child table (payments,

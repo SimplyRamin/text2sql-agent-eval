@@ -1,0 +1,8 @@
+id,tier,category,correct,error,generated_sql,retries_used,initial_retrieved_tables,route,cost,in_tokens,out_tokens,llm_latency_ms,wall_clock_ms
+q001,1,sales,True,,"SELECT COUNT(order_item_id) AS total_order_line_items
+FROM order_items;",0,"orders,stg_orders,order_items",simple,0.0,214,21,10592.456000000311,10664.030899999489
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers
+FROM customers;",0,"customers,stg_customers",simple,0.0,135,22,989.0969000007317,1117.4668000003294
+q003,1,delivery,True,,"SELECT COUNT(order_id) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';",0,"orders,stg_orders",simple,0.0,177,26,1120.6703999996535,1193.8148999997793
