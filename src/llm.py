@@ -18,8 +18,7 @@ load_dotenv()
 # $ per 1,000,000 tokens - (price_in, price_out). Only hosted models need
 # pricing; local Ollama calls are free and never touch this dict.
 PRICING: dict[str, tuple[float, float]] = {
-    # "gpt-40-mini": (0.15, 0.60),
-    # fill in real model names + prices for whatever the reseller offers
+    "gpt-4o-mini": (0.15, 0.60),
 }
 
 

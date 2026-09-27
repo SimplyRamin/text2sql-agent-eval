@@ -13,6 +13,20 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-27 — tiktoken cache persistence fixed; offline fallback added
+Decision: root cause of the earlier VPN-then-fails-again issue was
+tiktoken defaulting to the system temp directory for its cache, which
+wasn't persisting between runs on this machine. Fixed by pinning
+TIKTOKEN_CACHE_DIR to a stable project-local .tiktoken_cache/ folder
+(gitignored) via os.environ.setdefault in dry_run.py. Also added a
+genuine offline fallback in count_tokens (character-count heuristic,
+~4 chars/token, deliberately biased toward overestimating) so --dry-run
+never hard-fails on a network hiccup — consistent with this module's
+purpose as the always-available safety check before spending money.
+Confirmed fixed: count_tokens('...', 'gpt-4o-mini') now returns the real
+tiktoken count (6) without VPN, using the persisted local cache.
+Status: resolved. .tiktoken_cache/ added to .gitignore.
+
 ### 2026-09-02 — q086 root cause confirmed: unrequested status filter contradicts explicit question wording
 Decision: q086 ground truth is a plain SELECT COUNT(*) FROM orders (no
 filter). The model added WHERE order_status IN ('created', 'processing',
