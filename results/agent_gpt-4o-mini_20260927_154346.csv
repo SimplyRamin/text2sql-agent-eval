@@ -1,0 +1,24 @@
+id,tier,category,correct,error,generated_sql,retries_used,initial_retrieved_tables,route,cost,in_tokens,out_tokens,llm_latency_ms,wall_clock_ms
+q001,1,sales,True,,"SELECT COUNT(*) AS total_order_line_items
+FROM order_items;",0,"orders,stg_orders,order_items",simple,4.005e-05,199,17,1168.7703999996302,1242.282700000942
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers
+FROM customers;",0,"customers,stg_customers",simple,2.9100000000000003e-05,110,21,930.3540000000794,1025.3374000021722
+q003,1,delivery,True,,"SELECT COUNT(*) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';",0,"orders,stg_orders",simple,3.795e-05,161,23,872.2865999989153,933.5108999985096
+q004,1,payments,True,,SELECT AVG(payment_value) AS average_payment_value FROM order_payments;,0,order_payments,simple,2.4e-05,88,18,688.8008999994781,746.3121000000683
+q005,1,product,True,,"SELECT COUNT(DISTINCT product_category_name) AS distinct_category_count
+FROM products;",0,"products,category_translation",simple,4.11e-05,190,21,706.3401000013982,772.4232000000484
+q006,1,seller,True,,"SELECT COUNT(*) AS number_of_sellers
+FROM sellers
+WHERE seller_state = 'SP';",0,"customers,stg_customers,sellers",simple,3.39e-05,134,23,675.3024999998161,731.7650000004505
+q007,1,reviews,True,,"SELECT COUNT(*) AS review_count
+FROM order_reviews
+WHERE review_score = 5;",0,order_reviews,simple,2.7899999999999997e-05,98,22,794.9851000012131,862.7207999998063
+q008,1,product,True,,"SELECT COUNT(*) AS null_product_category_count
+FROM products
+WHERE product_category_name IS NULL;",0,"products,category_translation",simple,4.185e-05,187,23,652.9904999988503,714.6080000020447
+q009,1,sales,True,,"SELECT SUM(freight_value) AS total_freight_value
+FROM order_items;",0,"orders,stg_orders,order_items",simple,4.305e-05,199,22,871.0004999993544,922.4737999975332
+q010,1,delivery,True,,"SELECT MIN(order_purchase_timestamp) AS earliest_order_purchase_timestamp
+FROM orders;",0,"orders,stg_orders",simple,3.57e-05,162,19,693.4273000006215,753.0702000003657

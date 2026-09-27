@@ -1,0 +1,25 @@
+id,tier,category,correct,error,generated_sql,cost,in_tokens,out_tokens,llm_latency_ms,wall_clock_ms
+q001,1,sales,True,,"SELECT COUNT(*) AS total_order_line_items
+FROM order_items;",8.535e-05,501,17,1552.3033999998006,1593.5024000027624
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers
+FROM customers;",8.804999999999999e-05,503,21,1013.8979000003019,1105.34920000282
+q003,1,delivery,True,,"SELECT COUNT(*) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';",8.895e-05,501,23,1029.5666999991226,1079.801599997154
+q004,1,payments,True,,"SELECT AVG(payment_value) AS average_payment_value
+FROM order_payments;",8.64e-05,500,19,960.9200000013516,1003.4321999992244
+q005,1,product,True,,"SELECT COUNT(DISTINCT product_category_name) AS distinct_product_categories
+FROM products;",8.834999999999999e-05,505,21,1687.0378000021446,1739.2283999979554
+q006,1,seller,True,,"SELECT COUNT(*) AS seller_count
+FROM sellers
+WHERE seller_state = 'SP';",8.804999999999999e-05,503,21,1876.3272000032885,1918.1854000016756
+q007,1,reviews,True,,"SELECT COUNT(*) AS review_count
+FROM order_reviews
+WHERE review_score = 5;",8.819999999999999e-05,500,22,964.7382000002835,1006.9622000009986
+q008,1,product,True,,"SELECT COUNT(*) AS missing_product_category_count
+FROM products
+WHERE product_category_name IS NULL;",8.909999999999998e-05,502,23,1066.54300000082,1110.0384999990638
+q009,1,sales,True,,"SELECT SUM(freight_value) AS total_freight_value
+FROM order_items;",8.834999999999999e-05,501,22,1025.4716000017652,1065.7691000014893
+q010,1,delivery,True,,"SELECT MIN(order_purchase_timestamp) AS earliest_order_purchase_timestamp
+FROM orders;",8.669999999999999e-05,502,19,999.4979000002786,1038.0894000008993

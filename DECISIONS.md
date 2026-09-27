@@ -13,6 +13,53 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-27 — Phase 7 complete: hosted (gpt-4o-mini) comparison via AvalAI
+Decision: real hosted comparison run against gpt-4o-mini (AvalAI, OpenAI-
+compatible, api.avalai.ir/v1). Total spend: $0.0527 of $3.00 balance,
+tracked closely against dry-run projections throughout (e.g. full-100
+baseline projected $0.0104, actual $0.0099).
+
+Results:
+| | Baseline | Routed agent |
+|---|---|---|
+| Local Qwen2.5-Coder-7B | 59% | 63% (best local) |
+| Hosted gpt-4o-mini | 71% | 70% |
+
+Hosted gpt-4o-mini beats every local result outright on both
+architectures (expected — stronger model). But the routed agent
+underperforms the plain hosted baseline by 1pp (70% vs 71%) — the same
+qualitative pattern seen locally in Phase 5 before Phase 6's fixes closed
+that gap, this time not fixed since it's a cross-model comparison, not a
+bug. Root cause hypothesis, not fully confirmed: the routing/specialist
+prompt design (FK_HINTS, dedup checklist, join-path reasoning) was built
+and iteratively tuned entirely against Qwen2.5-Coder-7B's specific
+failure patterns (alias confusion, fan-out, category over-joins) and does
+not clearly transfer to a stronger, architecturally different model.
+Supporting evidence: q077 (hosted routed) failed with "Referenced table
+'op' not found! Candidate tables: 'subquery'" — the same shape as Phase
+6's q019/q064 local findings, where the join-path-reasoning instruction
+appeared to push the model toward unnecessary subquery complexity rather
+than helping it. gpt-4o-mini may be capable enough that this scaffolding
+adds more risk (self-inflicted complexity) than it removes (guidance
+against genuine confusion) — a plausible generalization but not
+independently verified beyond this one run.
+Tier breakdown, hosted: baseline T1 100/T2 88/T3 60/T4 44/T5 86.7 vs
+routed T1 100/T2 80/T3 60/T4 48/T5 86.7 — T2 is where routed loses most
+ground versus its own baseline, mirroring the exact tier where the local
+routed agent needed the most fixing work in Phase 6.
+Environment note: hit a real .env typo (api-avalai.ir vs api.avalai.ir,
+hyphen vs dot) that produced a getaddrinfo failed error indistinguishable
+from a network/litellm bug at first glance — cost significant debugging
+time before being traced via `repr(os.getenv(...))`. No charges incurred
+during that debugging, since a nonexistent hostname can never connect.
+Also confirmed budget.py's in-memory-only ledger does not persist across
+separate process invocations — today's actual spend had to be verified
+by summing real CSV cost columns across all of today's runs, not by
+trusting any single run's internal budget state.
+Status: Phase 7 closed. results/baseline_gpt-4o-mini_20260927_154700.csv
+and results/agent_gpt-4o-mini_20260927_155849.csv committed as the
+hosted reference runs.
+
 ### 2026-09-27 — tiktoken cache persistence fixed; offline fallback added
 Decision: root cause of the earlier VPN-then-fails-again issue was
 tiktoken defaulting to the system temp directory for its cache, which

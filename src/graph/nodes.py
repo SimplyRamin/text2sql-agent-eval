@@ -87,7 +87,7 @@ def _call_llm_and_record(state: GraphState, prompt: str, temperature: float) -> 
     attempt_number = state["retry_count"] + 1
 
     try:
-        response = llm.complete(prompt, model=state["model"], provider="local", temperature=temperature)
+        response = llm.complete(prompt, model=state["model"], provider=state["provider"], temperature=temperature)
     except Exception as e:
         return {
             "sql": "",

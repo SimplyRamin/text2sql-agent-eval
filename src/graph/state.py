@@ -9,6 +9,7 @@ from typing import TypedDict
 class GraphState(TypedDict):
     question: dict
     model: str
+    provider: str
     schema_context: str
     retrieved_tables: list[str]
     initial_retrieved_tables: list[str]
