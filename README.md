@@ -83,5 +83,19 @@ get filled in when you're actually doing a Phase 7 run.
 
 ## Status
 
-Repo scaffolded. Phase 0 in progress — see `DECISIONS.md` for what's been
-decided so far.
+Complete. All phases (0-9) finished. Final comparison:
+
+| | Baseline | Routed agent |
+|---|---|---|
+| Local (Qwen2.5-Coder-7B) | 66% | 69% |
+| Hosted (gpt-4o-mini) | 79% | **84%** |
+
+See `README_RESULTS.md` for the full comparison table and narrative, and
+`FAILURE_TAXONOMY.md` for the six-category failure-mode breakdown behind
+these numbers — including two real bugs found and fixed during
+evaluation (a scorer tolerance issue and a dedup-checklist gap), both
+documented with the evidence that caught them.
+
+`DECISIONS.md` has the complete build log: every architectural choice,
+bug found, and fix applied across all nine phases, from the original
+eval-harness design through the final hosted comparison run.
