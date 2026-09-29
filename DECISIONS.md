@@ -13,6 +13,50 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-29 — Final reference results after dedup fix and full re-run
+Decision: final numbers after all fixes this session (scorer tolerance,
+dedup checklist column-uniqueness). Local baseline 66%, local routed 69%
+(+3pp). Hosted baseline 79%, hosted routed 84% (+5pp). Routing now
+improves accuracy on BOTH models, consistently — the earlier "routing
+hurts on hosted" finding (Phase 7, corrected once already for the scorer
+bug) is now further confirmed reversed with the dedup fix included.
+Tier breakdown:
+- Local baseline: T1 100/T2 80/T3 40/T4 68/T5 60
+- Local routed: T1 100/T2 80/T3 56/T4 60/T5 66.7
+- Hosted baseline: T1 100/T2 92/T3 72/T4 60/T5 86.7
+- Hosted routed: T1 100/T2 92/T3 76/T4 72/T5 93.3
+Noted: hosted baseline scored 80% then 79% across two runs with
+byte-identical prompts (temperature=0) — hosted API calls are not
+perfectly deterministic even at temp=0, unlike local calls through our
+cache. Treat all hosted numbers as having ±1-2pp inherent noise on top
+of the already-documented retry-temperature variance.
+Status: FINAL reference runs for the write-up:
+- results/baseline_qwen2.5-coder-7b_20260929_105034.csv
+- results/agent_qwen2.5-coder-7b_20260929_111951.csv
+- results/baseline_gpt-4o-mini_20260929_103950.csv
+- results/agent_gpt-4o-mini_20260929_105023.csv
+
+### 2026-09-29 — Dedup checklist column-uniqueness fix: confirmed working
+Decision: DEDUP_CHECKLIST updated to specify which columns are safe to
+deduplicate on (order_id, customer_id — unique across the whole table)
+versus unsafe (order_item_id — a per-order sequence number that repeats
+across different orders, so COUNT(DISTINCT order_item_id) undercounts).
+Also explicitly permits plain COUNT(*) when there's no real fan-out risk.
+Why: found via a real hosted-model regression — q013/q027 (tier 2)
+passed on baseline but failed on the routed agent, both using
+COUNT(DISTINCT order_item_id) where plain COUNT(*) was correct. q021/
+q025 (same regression set) traced to a different, already-documented
+cause (self-inflicted complexity, category 4) — not fixed, same
+reasoning as before.
+Verified: q013 now passes with the fix (correctly uses COUNT(*)). q027
+still fails, but for an unrelated, already-known reason — case-
+sensitivity on a string literal ('Ibitinga' vs warehouse's lowercase
+'ibitinga'), the same category-5 model-knowledge gap as q011. Confirms
+the dedup fix did its specific job without needing to (and not claiming
+to) fix every regression in this set.
+Status: fixed and verified on the 2 directly-targeted questions. Full
+100-question re-run needed before treating this as the final number.
+
 ### 2026-09-29 — Hosted runs re-graded under fixed scorer: baseline 80%, routed 81%
 Decision: re-ran full hosted baseline and routed agent (gpt-4o-mini) after
 the float-tolerance fix. Baseline 71%→80%, routed 70%→81%. This REVERSES

@@ -24,7 +24,14 @@ DEDUP_CHECKLIST = (
     "will double-count rows. When multiple joined tables share a column "
     "name (e.g. order_id appears in both orders and order_payments), "
     "always qualify it with the table name or alias — e.g. "
-    "COUNT(DISTINCT orders.order_id), never COUNT(DISTINCT order_id)."
+    "COUNT(DISTINCT orders.order_id), never COUNT(DISTINCT order_id). "
+    "Only deduplicate on a column that uniquely identifies a row across "
+    "the WHOLE table, such as order_id or customer_id — never a column "
+    "like order_item_id, which is only a sequence number within one "
+    "order and repeats across different orders, so COUNT(DISTINCT "
+    "order_item_id) will undercount. If the join has no fan-out risk at "
+    "all (a single join to a table that has at most one row per parent), "
+    "a plain COUNT(*) is correct and DISTINCT is unnecessary."
 )
 
 CATEGORY_NAME_NOTE = (

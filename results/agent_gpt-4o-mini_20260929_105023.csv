@@ -1,0 +1,575 @@
+id,tier,category,correct,error,generated_sql,retries_used,initial_retrieved_tables,route,cost,in_tokens,out_tokens,llm_latency_ms,wall_clock_ms
+q001,1,sales,True,,"SELECT COUNT(*) AS total_order_line_items
+FROM order_items;",0,"orders,stg_orders,order_items",simple,0.0,199,17,1168.7703999996302,59.798799999043695
+q002,1,customer,True,,"SELECT COUNT(DISTINCT customer_unique_id) AS unique_customers
+FROM customers;",0,"customers,stg_customers",simple,0.0,110,21,930.3540000000794,81.19280000028084
+q003,1,delivery,True,,"SELECT COUNT(*) AS canceled_orders_count
+FROM orders
+WHERE order_status = 'canceled';",0,"orders,stg_orders",simple,0.0,161,23,872.2865999989153,58.73440000141272
+q004,1,payments,True,,SELECT AVG(payment_value) AS average_payment_value FROM order_payments;,0,order_payments,simple,0.0,88,18,688.8008999994781,53.12279999998282
+q005,1,product,True,,"SELECT COUNT(DISTINCT product_category_name) AS distinct_category_count
+FROM products;",0,"products,category_translation",simple,0.0,190,21,706.3401000013982,59.37379999886616
+q006,1,seller,True,,"SELECT COUNT(*) AS number_of_sellers
+FROM sellers
+WHERE seller_state = 'SP';",0,"customers,stg_customers,sellers",simple,0.0,134,23,675.3024999998161,50.99809999956051
+q007,1,reviews,True,,"SELECT COUNT(*) AS review_count
+FROM order_reviews
+WHERE review_score = 5;",0,order_reviews,simple,0.0,98,22,794.9851000012131,51.07809999935853
+q008,1,product,True,,"SELECT COUNT(*) AS null_product_category_count
+FROM products
+WHERE product_category_name IS NULL;",0,"products,category_translation",simple,0.0,187,23,652.9904999988503,54.36499999996158
+q009,1,sales,True,,"SELECT SUM(freight_value) AS total_freight_value
+FROM order_items;",0,"orders,stg_orders,order_items",simple,0.0,199,22,871.0004999993544,55.66519999956654
+q010,1,delivery,True,,"SELECT MIN(order_purchase_timestamp) AS earliest_order_purchase_timestamp
+FROM orders;",0,"orders,stg_orders",simple,0.0,162,19,693.4273000006215,64.21699999918928
+q011,2,customer,True,,"SELECT COUNT(o.order_id) AS total_orders
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'RJ';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,214,38,1577.5350000003527,74.90739999957441
+q012,2,product,True,,"SELECT AVG(order_items.price) AS average_price
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'cama_mesa_banho';",0,"orders,stg_orders,order_items,products,category_translation",join,0.00028575,629,319,7377.671599999303,7445.038699999714
+q013,2,seller,True,,"SELECT COUNT(order_items.order_item_id) AS total_order_items
+FROM order_items
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE sellers.seller_state = 'MG';",1,"orders,stg_orders,order_items,sellers",join,0.0003369,1515,588,15502.947400000266,6501.142499999332
+q014,2,reviews,True,,"SELECT COUNT(DISTINCT o.order_id) AS delivered_orders_with_review_score_1
+FROM orders o
+JOIN order_reviews r ON o.order_id = r.order_id
+WHERE o.order_status = 'delivered' AND r.review_score = 1;",1,"orders,stg_orders,order_reviews",join,0.0003363,1209,359,7188.585400001102,6278.673099999651
+q015,2,payments,True,,"SELECT COUNT(DISTINCT o.order_id) AS delivered_orders_boleto
+FROM orders o
+JOIN order_payments p ON o.order_id = p.order_id
+WHERE o.order_status = 'delivered' AND p.payment_type = 'boleto';",0,"orders,stg_orders,order_payments",simple,0.0,194,55,1663.1442999969295,84.97269999861601
+q016,2,sales,True,,"SELECT SUM(oi.price) AS total_revenue
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+WHERE p.product_category_name = 'informatica_acessorios';",0,"order_items,products,category_translation",simple,0.0,238,45,985.6756999979552,66.86880000052042
+q017,2,delivery,True,,"SELECT COUNT(o.order_id) AS orders_delivered_late
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'BA'
+  AND o.order_delivered_customer_date > o.order_estimated_delivery_date;",0,"orders,stg_orders,customers,stg_customers",simple,0.0,222,57,919.6807000007539,72.61560000006284
+q018,2,customer,True,,"SELECT COUNT(DISTINCT c.customer_unique_id) AS distinct_canceled_customers
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE o.order_status = 'canceled';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,218,46,1149.3909999990137,72.87940000060189
+q019,2,product,True,,"SELECT COUNT(DISTINCT p.product_id) AS product_count
+FROM order_items oi
+JOIN products p ON oi.product_id = p.product_id
+WHERE p.product_category_name IS NULL;",0,"orders,stg_orders,order_items,products,category_translation",join,0.00029955,629,342,6304.655100000673,6388.266100000692
+q020,2,seller,True,,"SELECT COUNT(DISTINCT sellers.seller_id) AS distinct_seller_count
+FROM products
+JOIN order_items ON products.product_id = order_items.product_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE products.product_category_name = 'utilidades_domesticas';",0,"order_items,products,category_translation,sellers",join,0.00032879999999999997,552,410,10834.880099999282,10914.22969999985
+q021,2,sales,False,,"SELECT AVG(stg_order_items.order_item_value) AS average_order_item_value
+FROM stg_order_items
+JOIN order_items ON stg_order_items.order_id = order_items.order_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE sellers.seller_state = 'PR';",2,"orders,stg_orders,order_items,sellers",join,0.0011416500000000001,2615,1249,20109.848400001283,20330.27310000034
+q022,2,delivery,True,,"SELECT COUNT(*) AS awaiting_delivery_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'SP' 
+  AND o.order_delivered_customer_date IS NULL;",0,"orders,stg_orders,customers,stg_customers",simple,0.0,222,48,904.8629000026267,70.52739999926416
+q023,2,reviews,True,,"SELECT 
+    AVG(review_score) AS average_review_score
+FROM 
+    order_reviews
+JOIN 
+    orders ON order_reviews.order_id = orders.order_id
+WHERE 
+    orders.order_id IN (
+        SELECT DISTINCT orders.order_id
+        FROM orders
+        JOIN order_payments ON orders.order_id = order_payments.order_id
+        WHERE order_payments.payment_type = 'credit_card'
+    )",2,"orders,stg_orders,order_payments,order_reviews",join,0.00107625,2631,1136,21118.148100000326,21472.172199999477
+q024,2,customer,True,,"SELECT COUNT(o.order_id) AS delivered_orders_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE o.order_status = 'delivered' AND c.customer_state = 'RS';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,217,48,1308.4263999990071,65.4512999990402
+q025,2,product,True,,"SELECT SUM(products.product_weight_g) AS total_weight_grams
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'esporte_lazer';",0,"orders,stg_orders,order_items,products,category_translation",join,0.00027899999999999995,640,305,7340.667000000394,7409.616000000824
+q026,2,payments,True,,"SELECT SUM(op.payment_value) AS total_payment_value
+FROM orders o
+JOIN order_payments op ON o.order_id = op.order_id
+WHERE o.order_status = 'processing';",0,"orders,stg_orders,order_payments",simple,0.0,199,41,882.5987999989593,63.573100000212435
+q027,2,seller,False,,"SELECT COUNT(*) AS total_order_items
+FROM order_items oi
+JOIN sellers s ON oi.seller_id = s.seller_id
+WHERE s.seller_city = 'Ibitinga';",2,"orders,stg_orders,customers,stg_customers,order_items,sellers",join,0.0006701999999999999,2594,923,17051.685599999473,11173.107499998878
+q028,2,reviews,True,,"SELECT COUNT(DISTINCT o.order_id) AS delivered_orders_with_five_star_reviews
+FROM orders o
+JOIN order_reviews r ON o.order_id = r.order_id
+WHERE o.order_status = 'delivered' AND r.review_score = 5;",1,"orders,stg_orders,order_reviews",join,0.0003321,1209,352,6130.577200001426,5161.93419999945
+q029,2,sales,True,,"SELECT AVG(order_items.freight_value) AS average_freight_value
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'informatica_acessorios';",0,"orders,stg_orders,order_items,products,category_translation",join,0.0002445,630,250,4856.762600000366,4931.513900000937
+q030,2,customer,True,,"SELECT COUNT(o.order_id) AS total_orders
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_zip_code_prefix LIKE '01%';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,217,41,1410.2219999986119,68.38849999985541
+q031,2,product,True,,"SELECT COUNT(DISTINCT p.product_category_name) AS distinct_portuguese_categories
+FROM products p
+LEFT JOIN category_translation c ON p.product_category_name = c.product_category_name
+WHERE c.product_category_name_english IS NULL;",0,"products,category_translation",simple,0.0,193,51,992.0425999989675,62.05020000015793
+q032,2,delivery,True,,"SELECT COUNT(o.order_id) AS order_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'SC' 
+  AND o.order_estimated_delivery_date < '2017-06-01';",0,"orders,stg_orders,customers,stg_customers",simple,0.0,226,56,976.3157000015781,65.3918000007252
+q033,2,payments,True,,"SELECT COUNT(DISTINCT o.order_id) AS delivered_orders_with_high_installments
+FROM orders o
+JOIN order_payments p ON o.order_id = p.order_id
+WHERE o.order_status = 'delivered' AND p.payment_installments > 10;",0,"orders,stg_orders,order_payments",simple,0.0,198,57,1238.5242999989714,76.16170000073907
+q034,2,seller,True,,"SELECT SUM(oi.freight_value) AS total_freight_value
+FROM order_items oi
+JOIN sellers s ON oi.seller_id = s.seller_id
+WHERE s.seller_state = 'RJ';",0,"order_items,sellers",simple,0.0,124,47,979.5651999993424,67.8485999997065
+q035,2,reviews,True,,"SELECT COUNT(*) AS review_count
+FROM order_reviews
+WHERE order_id IN (
+    SELECT order_id
+    FROM orders
+    WHERE order_status = 'canceled'
+) AND review_comment_title IS NOT NULL;",0,"orders,stg_orders,order_reviews",simple,0.0,212,47,1006.0381000002963,104.33790000024601
+q036,3,sales,True,,"SELECT SUM(order_items.price) AS total_revenue
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+WHERE customers.customer_state = 'SP';",0,"orders,stg_orders,customers,stg_customers,order_items",join,0.0003234,552,401,8230.441700001393,8325.431399998706
+q037,3,product,False,,"SELECT COUNT(DISTINCT order_items.order_item_id) AS total_order_items
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+JOIN category_translation ON products.product_category_name = category_translation.product_category_name
+WHERE category_translation.product_category_name_english = 'health_beauty';",2,"orders,stg_orders,order_items,products,category_translation",join,0.0010596,2668,1099,19409.52390000166,19641.005399998903
+q038,3,seller,True,,"SELECT AVG(order_items.price) AS average_price
+FROM order_items
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE sellers.seller_state = 'SP'
+  AND products.product_category_name = 'moveis_decoracao';",0,"order_items,products,category_translation,sellers",join,0.0003063,558,371,9325.391700000182,9398.057500000505
+q039,3,delivery,True,,"SELECT COUNT(DISTINCT orders.order_id) AS total_orders
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_reviews ON orders.order_id = order_reviews.order_id
+WHERE customers.customer_state = 'MG'
+  AND orders.order_delivered_customer_date > orders.order_estimated_delivery_date
+  AND order_reviews.review_score < 3;",0,"orders,stg_orders,customers,stg_customers,order_reviews",join,0.0003174,564,388,7439.863800000239,7542.779999999766
+q040,3,customer,True,,"SELECT COUNT(DISTINCT customers.customer_unique_id) AS distinct_customers_count
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_payments ON orders.order_id = order_payments.order_id
+WHERE customers.customer_state = 'SP'
+  AND order_payments.payment_type = 'boleto';",0,"customers,stg_customers,order_payments,orders,stg_orders",join,0.0003321,550,416,7449.982199999795,7562.234799999715
+q041,3,reviews,True,,"SELECT AVG(review_scores.review_score) AS average_review_score
+FROM (
+    SELECT DISTINCT orders.order_id, order_reviews.review_score
+    FROM order_items
+    JOIN products ON order_items.product_id = products.product_id
+    JOIN orders ON order_items.order_id = orders.order_id
+    JOIN order_reviews ON order_reviews.order_id = orders.order_id
+    WHERE products.product_category_name = 'informatica_acessorios'
+) AS review_scores;",1,"orders,stg_orders,order_items,order_reviews,products,category_translation",join,0.0007477499999999999,1725,815,14003.450999998677,14178.221899999699
+q042,3,payments,True,,"SELECT 
+    SUM(order_payments.payment_value) AS total_payment_value
+FROM 
+    customers
+JOIN 
+    orders ON customers.customer_id = orders.customer_id
+JOIN 
+    order_payments ON orders.order_id = order_payments.order_id
+WHERE 
+    customers.customer_state = 'PR' 
+    AND order_payments.payment_type = 'credit_card';",0,"orders,stg_orders,customers,stg_customers,order_payments",join,0.00032819999999999995,548,410,7210.344699999041,7290.449299998727
+q043,3,sales,True,,"SELECT COUNT(*) AS total_order_items
+FROM order_items
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE customers.customer_state = 'SP'
+  AND sellers.seller_state = 'SP';",2,"orders,stg_orders,customers,stg_customers,order_items,sellers",join,0.00111135,2685,1181,22354.954200000066,22643.260799999553
+q044,3,product,False,,"SELECT SUM(order_items.freight_value) AS total_freight_value
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+LEFT JOIN category_translation ON products.product_category_name = category_translation.product_category_name
+WHERE category_translation.product_category_name_english IS NULL;",2,"orders,stg_orders,order_items,products,category_translation",join,0.0010216499999999998,2675,1034,18347.971100001814,18608.987100000377
+q045,3,customer,False,,"SELECT COUNT(DISTINCT order_items.order_item_id) AS total_order_items
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+WHERE customers.customer_city = 'curitiba';",2,"orders,stg_orders,customers,stg_customers,order_items",join,0.0009621,2586,957,16352.19909999978,16597.343100000217
+q046,3,seller,True,,"SELECT AVG(order_items.freight_value) AS average_freight_value
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE sellers.seller_state = 'SC'
+  AND products.product_category_name = 'ferramentas_jardim';",0,"order_items,products,category_translation,sellers",join,0.00032295,561,398,9925.527000001239,9995.758600000045
+q047,3,reviews,True,,"SELECT COUNT(DISTINCT orders.order_id) AS order_count
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_reviews ON orders.order_id = order_reviews.order_id
+WHERE customers.customer_state = 'BA'
+  AND order_reviews.review_score IN (1, 2);",0,"orders,stg_orders,customers,stg_customers,order_reviews",join,0.0003369,558,422,8936.514500001067,9015.026000000944
+q048,3,delivery,True,,"SELECT COUNT(DISTINCT orders.order_id) AS total_orders
+FROM orders
+JOIN order_payments ON orders.order_id = order_payments.order_id
+JOIN order_reviews ON orders.order_id = order_reviews.order_id
+WHERE orders.order_delivered_customer_date > orders.order_estimated_delivery_date
+  AND order_payments.payment_type = 'boleto'
+  AND order_reviews.review_score = 1;",0,"orders,stg_orders,order_payments,order_reviews",join,0.00032129999999999995,530,403,6523.483400000259,6608.293799999956
+q049,3,sales,True,,"SELECT SUM(order_items.price) AS total_price
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE customers.customer_state = 'SP'
+  AND products.product_category_name = 'relogios_presentes';",0,"customers,stg_customers,order_items,products,category_translation,orders,stg_orders",join,0.0003762,712,449,8134.179000000586,8227.22849999991
+q050,3,product,True,,"SELECT COUNT(DISTINCT sellers.seller_id) AS distinct_sellers_count
+FROM products
+JOIN order_items ON products.product_id = order_items.product_id
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE products.product_category_name = 'telefonia'
+  AND customers.customer_state = 'RJ';",1,"customers,stg_customers,products,category_translation,sellers",join,0.00077445,1607,889,15734.629799999311,15897.889799998666
+q051,3,customer,True,,"SELECT COUNT(DISTINCT orders.order_id) AS order_count
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE customers.customer_state = 'RS'
+  AND products.product_weight_g > 5000;",1,"orders,stg_orders,customers,stg_customers,order_items",join,0.0006635999999999999,1584,710,18412.028299999292,18593.98770000007
+q052,3,payments,False,,"SELECT SUM(DISTINCT order_payments.payment_value) AS total_payment_value
+FROM order_items
+JOIN products ON order_items.product_id = products.product_id
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN order_payments ON orders.order_id = order_payments.order_id
+WHERE products.product_category_name = 'automotivo';",2,"orders,stg_orders,order_items,order_payments,products,category_translation",join,0.00113355,2757,1200,20156.20879999915,20417.489200001
+q053,3,seller,False,,"SELECT COUNT(DISTINCT order_items.order_item_id) AS total_order_items
+FROM order_items
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN sellers ON order_items.seller_id = sellers.seller_id
+WHERE customers.customer_state = 'MG' 
+  AND sellers.seller_state = 'SP';",2,"orders,stg_orders,customers,stg_customers,order_items,sellers",join,0.0011380499999999998,2679,1227,25194.516399998975,25454.958599999372
+q054,3,reviews,True,,"SELECT AVG(order_reviews.review_score) AS average_review_score
+FROM orders
+JOIN order_payments ON orders.order_id = order_payments.order_id
+JOIN order_reviews ON orders.order_id = order_reviews.order_id
+WHERE orders.order_status = 'delivered'
+  AND order_payments.payment_installments > 5;",0,"orders,stg_orders,order_payments,order_reviews",join,0.0003063,522,380,6462.085600000137,6559.835400001248
+q055,3,delivery,True,,"SELECT COUNT(DISTINCT orders.order_id) AS total_orders
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN stg_orders ON orders.order_id = stg_orders.order_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE customers.customer_state = 'SC'
+  AND products.product_weight_g > 10000
+  AND stg_orders.order_delivered_customer_date > stg_orders.order_estimated_delivery_date;",1,"orders,stg_orders,customers,stg_customers,products,category_translation",join,0.0008964000000000001,1732,1061,19315.80479999866,19493.370700000014
+q056,3,sales,True,,"SELECT SUM(order_items.price) AS total_price
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_items ON orders.order_id = order_items.order_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE customers.customer_state = 'PR'
+  AND products.product_category_name = 'utilidades_domesticas';",0,"orders,stg_orders,customers,stg_customers,order_items,products,category_translation",join,0.0003639,710,429,8572.408699999869,8672.373700001117
+q057,3,customer,True,,"SELECT COUNT(DISTINCT customers.customer_unique_id) AS distinct_customers
+FROM order_payments
+JOIN orders ON order_payments.order_id = orders.order_id
+JOIN customers ON orders.customer_id = customers.customer_id
+WHERE order_payments.payment_type = 'voucher';",0,"orders,stg_orders,customers,stg_customers,order_payments",join,0.0002877,550,342,5888.273999999001,5968.440999999075
+q058,3,product,False,,"SELECT COUNT(DISTINCT order_items.order_item_id) AS total_order_items
+FROM order_items
+JOIN orders ON order_items.order_id = orders.order_id
+JOIN customers ON orders.customer_id = customers.customer_id
+JOIN products ON order_items.product_id = products.product_id
+WHERE products.product_category_name = 'esporte_lazer'
+  AND customers.customer_state <> 'SP';",2,"orders,stg_orders,customers,stg_customers,order_items,products,category_translation",join,0.00111435,2809,1155,24909.790300000168,25175.624000001335
+q059,3,seller,True,,"SELECT AVG(p.product_photos_qty) AS average_product_photos_qty
+FROM order_items oi
+JOIN sellers s ON oi.seller_id = s.seller_id
+JOIN products p ON oi.product_id = p.product_id
+WHERE s.seller_state = 'RJ'
+  AND p.product_category_name = 'moveis_decoracao';",1,"order_items,products,category_translation,sellers",join,0.0008065500000000001,1629,937,16033.447000001615,16164.556300000186
+q060,3,reviews,True,,"SELECT COUNT(DISTINCT orders.order_id) AS total_orders
+FROM customers
+JOIN orders ON customers.customer_id = orders.customer_id
+JOIN order_payments ON orders.order_id = order_payments.order_id
+JOIN order_reviews ON orders.order_id = order_reviews.order_id
+WHERE customers.customer_state = 'SP'
+  AND order_payments.payment_type = 'credit_card'
+  AND order_reviews.review_score = 5;",0,"orders,stg_orders,customers,stg_customers,order_payments,order_reviews",join,0.0003042,604,356,7292.86619999948,7399.438200000077
+q061,4,sales,False,,"SELECT 
+    ct.product_category_name AS category_name,
+    SUM(oi.price + oi.freight_value) AS total_revenue
+FROM 
+    order_items oi
+JOIN 
+    orders o ON oi.order_id = o.order_id
+JOIN 
+    products p ON oi.product_id = p.product_id
+JOIN 
+    category_translation ct ON p.product_category_name = ct.product_category_name
+GROUP BY 
+    ct.product_category_name
+ORDER BY 
+    total_revenue DESC
+LIMIT 5;",2,"orders,stg_orders,order_items,products,category_translation",join,0.00120315,2785,1309,22418.040499998824,22718.689500001346
+q062,4,customer,True,,"SELECT c.customer_state, COUNT(o.order_id) AS order_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+GROUP BY c.customer_state
+HAVING COUNT(o.order_id) > 5000;",0,"orders,stg_orders,customers,stg_customers",simple,0.0,220,52,1133.0809999999474,84.97879999958968
+q063,4,seller,True,,"SELECT s.seller_state, SUM(oi.freight_value) AS total_freight_value
+FROM order_items oi
+JOIN sellers s ON oi.seller_id = s.seller_id
+GROUP BY s.seller_state
+ORDER BY total_freight_value DESC
+LIMIT 3;",0,"order_items,sellers",simple,0.0,126,63,1261.3640000017767,67.91359999988344
+q064,4,reviews,True,,"SELECT o.order_status, AVG(r.review_score) AS average_review_score
+FROM orders o
+JOIN order_reviews r ON o.order_id = r.order_id
+GROUP BY o.order_status;",0,"orders,stg_orders,order_reviews",simple,0.0,202,42,921.7305000020133,84.12700000008044
+q065,4,product,True,,"SELECT 
+    ct.product_category_name AS category_name,
+    COUNT(oi.order_item_id) AS total_order_items
+FROM 
+    order_items oi
+JOIN 
+    orders o ON oi.order_id = o.order_id
+JOIN 
+    products p ON oi.product_id = p.product_id
+JOIN 
+    category_translation ct ON p.product_category_name = ct.product_category_name
+GROUP BY 
+    ct.product_category_name
+ORDER BY 
+    total_order_items DESC
+LIMIT 10;",1,"orders,stg_orders,order_items,products,category_translation",join,0.00083625,1707,967,16223.408600000766,16423.92970000037
+q066,4,delivery,True,,"SELECT customer_state, AVG(delivery_delay_days) AS average_delivery_delay
+FROM stg_orders
+JOIN stg_customers ON stg_orders.customer_id = stg_customers.customer_id
+GROUP BY customer_state
+HAVING AVG(delivery_delay_days) < 11;",0,"orders,stg_orders,customers,stg_customers",simple,0.0,230,60,1061.7270000002463,95.90840000055323
+q067,4,payments,True,,"SELECT payment_type, SUM(payment_value) AS total_payment_value
+FROM order_payments
+GROUP BY payment_type
+ORDER BY total_payment_value DESC;",0,order_payments,simple,0.0,96,34,832.2754000000714,54.66119999982766
+q068,4,seller,True,,"SELECT sellers.seller_id, COUNT(DISTINCT order_items.product_id) AS distinct_product_count
+FROM sellers
+JOIN order_items ON sellers.seller_id = order_items.seller_id
+GROUP BY sellers.seller_id
+ORDER BY distinct_product_count DESC
+LIMIT 5;",1,"products,category_translation,sellers",join,0.0003727499999999999,1237,418,7013.239600000816,6183.411199999682
+q069,4,customer,False,,"SELECT 
+    c.customer_unique_id,
+    COUNT(DISTINCT o.order_id) AS order_count
+FROM 
+    orders o
+JOIN 
+    customers c ON o.customer_id = c.customer_id
+GROUP BY 
+    c.customer_unique_id
+ORDER BY 
+    order_count DESC
+LIMIT 5;",2,"orders,stg_orders,customers,stg_customers",join,0.00068355,2295,685,12367.861900003845,11397.4290999995
+q070,4,sales,True,,"SELECT AVG(order_value) AS average_order_value
+FROM (
+    SELECT order_id, SUM(price) AS order_value
+    FROM order_items
+    GROUP BY order_id
+) AS order_totals;",0,"orders,stg_orders,order_items",simple,0.0,207,45,935.2873999996518,104.68380000020261
+q071,4,product,False,,"SELECT 
+    CASE 
+        WHEN product_weight_g < 1000 THEN 'Under 1000g'
+        WHEN product_weight_g BETWEEN 1000 AND 5000 THEN '1000-5000g'
+        ELSE 'Over 5000g'
+    END AS weight_bracket,
+    COUNT(*) AS product_count
+FROM products
+WHERE product_weight_g IS NOT NULL
+GROUP BY weight_bracket;",2,"products,category_translation",join,0.0007948499999999999,2360,876,14026.874999999563,12662.889399998676
+q072,4,delivery,True,,"SELECT order_status, COUNT(*) AS order_count
+FROM orders
+WHERE EXTRACT(YEAR FROM order_purchase_timestamp) = 2017
+GROUP BY order_status;",0,"orders,stg_orders",simple,0.0,162,37,912.1293999996851,55.997499999648426
+q073,4,reviews,True,,"SELECT 
+    review_score,
+    COUNT(*) * 100.0 / (SELECT COUNT(*) FROM order_reviews) AS percentage
+FROM 
+    order_reviews
+GROUP BY 
+    review_score
+ORDER BY 
+    review_score;",0,order_reviews,simple,0.0,99,50,990.5828999981168,62.4904999986029
+q074,4,seller,True,,"SELECT seller_id, SUM(price) AS total_revenue
+FROM order_items
+GROUP BY seller_id
+ORDER BY total_revenue DESC
+LIMIT 5;",0,"order_items,sellers",simple,0.0,137,36,827.9532999986259,68.18080000084592
+q075,4,customer,True,,"SELECT customer_state, COUNT(DISTINCT customer_unique_id) AS distinct_customer_count
+FROM customers
+GROUP BY customer_state
+ORDER BY distinct_customer_count ASC
+LIMIT 5;",0,"customers,stg_customers",simple,0.0,127,40,842.3156999997445,97.15499999947497
+q076,4,sales,False,,"SELECT 
+    p.product_category_name,
+    AVG(oi.freight_value / oi.price) AS average_freight_ratio
+FROM 
+    stg_order_items soi
+JOIN 
+    order_items oi ON soi.order_id = oi.order_id
+JOIN 
+    products p ON oi.product_id = p.product_id
+GROUP BY 
+    p.product_category_name
+ORDER BY 
+    average_freight_ratio DESC
+LIMIT 5;",2,"orders,stg_orders,order_items,products,category_translation",join,0.0012661499999999997,2809,1408,22741.119700000127,23067.846399999326
+q077,4,payments,True,,"SELECT payment_type, AVG(payment_installments) AS average_installments
+FROM order_payments
+GROUP BY payment_type;",0,order_payments,simple,0.0,91,28,1090.4123000000254,58.51819999952568
+q078,4,product,True,,"SELECT p.product_category_name, COUNT(DISTINCT oi.seller_id) AS distinct_sellers
+FROM products p
+JOIN order_items oi ON p.product_id = oi.product_id
+JOIN sellers s ON oi.seller_id = s.seller_id
+GROUP BY p.product_category_name
+ORDER BY distinct_sellers DESC
+LIMIT 5;",1,"products,category_translation,sellers",join,0.00039674999999999997,1245,464,7650.723200002176,6775.545300000886
+q079,4,delivery,False,,"SELECT 
+    DATE_TRUNC('month', order_purchase_timestamp) AS month,
+    COUNT(DISTINCT order_id) AS total_orders
+FROM 
+    orders
+WHERE 
+    order_purchase_timestamp >= '2018-01-01' AND order_purchase_timestamp < '2019-01-01'
+GROUP BY 
+    month
+ORDER BY 
+    month;",2,"orders,stg_orders",join,0.0007034999999999999,2242,728,12646.854800001165,11770.785599999726
+q080,4,seller,True,,"SELECT 
+    sellers.seller_state,
+    COUNT(*) AS total_order_items_sold
+FROM 
+    order_items
+JOIN 
+    sellers ON order_items.seller_id = sellers.seller_id
+GROUP BY 
+    sellers.seller_state
+ORDER BY 
+    total_order_items_sold DESC;",1,"orders,stg_orders,customers,stg_customers,order_items,sellers",join,0.0007002,1628,760,14858.151299999008,14996.082299998307
+q081,4,product,True,,"SELECT 
+    p.product_category_name, 
+    AVG(p.product_description_lenght) AS average_description_length
+FROM 
+    products p
+GROUP BY 
+    p.product_category_name
+HAVING 
+    COUNT(p.product_id) > 100
+ORDER BY 
+    average_description_length DESC
+LIMIT 5;",0,"products,category_translation",simple,0.0,208,68,1309.4794999997248,57.311700000354904
+q082,4,reviews,True,,"SELECT review_score, COUNT(*) AS review_count
+FROM order_reviews
+WHERE review_comment_message IS NOT NULL AND review_comment_message <> ''
+GROUP BY review_score;",0,order_reviews,simple,0.0,105,36,833.3877000004577,56.05630000172823
+q083,4,sales,False,,"SELECT 
+    EXTRACT(YEAR FROM o.order_purchase_timestamp) AS purchase_year,
+    SUM(DISTINCT op.payment_value) AS total_revenue
+FROM 
+    orders o
+JOIN 
+    order_payments op ON o.order_id = op.order_id
+GROUP BY 
+    purchase_year
+ORDER BY 
+    purchase_year;",2,"orders,stg_orders",join,0.0006637500000000001,2217,642,10395.334099999673,9736.6607999993
+q084,4,customer,False,,"SELECT o.order_status, COUNT(DISTINCT o.order_id) AS order_count
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_state = 'SP'
+GROUP BY o.order_status
+ORDER BY o.order_status;",2,"orders,stg_orders,customers,stg_customers",join,0.0007789499999999999,2256,838,13300.411199999871,12633.94900000094
+q085,4,delivery,True,,"SELECT 
+    c.customer_state,
+    AVG(DATEDIFF('day', o.order_purchase_timestamp, o.order_delivered_customer_date)) AS avg_delivery_days
+FROM 
+    orders o
+JOIN 
+    customers c ON o.customer_id = c.customer_id
+WHERE 
+    o.order_status = 'delivered'
+GROUP BY 
+    c.customer_state
+ORDER BY 
+    avg_delivery_days DESC
+LIMIT 5;",1,"orders,stg_orders,customers,stg_customers",join,0.00039269999999999995,1359,457,7037.027100001069,5929.871500000445
+q086,5,delivery,True,,"SELECT COUNT(*) AS total_orders
+FROM orders;",0,"orders,stg_orders",simple,0.0,170,14,663.6584000007133,53.519900000537746
+q087,5,delivery,True,,"SELECT AVG(DATEDIFF('day', order_estimated_delivery_date, order_delivered_customer_date)) AS average_delivery_delay
+FROM orders
+WHERE order_status = 'delivered' 
+  AND order_delivered_customer_date IS NOT NULL;",1,"orders,stg_orders",join,0.00040275,1288,443,7661.180700000841,6662.258599999404
+q088,5,delivery,True,,"SELECT COUNT(*) AS delivered_orders_early
+FROM orders
+WHERE order_status = 'delivered'
+  AND order_delivered_customer_date < order_estimated_delivery_date - INTERVAL '20 days';",0,"orders,stg_orders",simple,0.0,166,44,1032.93389999817,55.68440000024566
+q089,5,payments,True,,"SELECT COUNT(*) AS total_payment_records
+FROM order_payments;",0,"orders,stg_orders,order_payments",simple,0.0,207,17,740.9197000015411,50.7142999995267
+q090,5,payments,False,,"SELECT COUNT(DISTINCT order_id) AS order_count
+FROM order_payments
+GROUP BY order_id
+HAVING COUNT(payment_sequential) > 1;",2,"orders,stg_orders,order_payments",join,0.0008072999999999999,2179,886,16001.382799999192,15545.94630000065
+q091,5,payments,True,,"SELECT SUM(payment_value) AS total_payment_value
+FROM order_payments
+WHERE order_id = '0016dfedd97fc2950e388d2971d718c7';",0,"orders,stg_orders,order_payments",simple,0.0,221,42,881.7290999977558,63.498000001345645
+q092,5,delivery,True,,"SELECT COUNT(*) AS undelivered_orders
+FROM orders
+WHERE order_delivered_customer_date IS NULL;",0,"orders,stg_orders",simple,0.0,167,25,812.3359000019263,52.69310000039695
+q093,5,reviews,True,,"SELECT COUNT(*) AS no_comment_reviews
+FROM order_reviews
+WHERE review_comment_message IS NULL OR review_comment_message = '';",0,order_reviews,simple,0.0,98,28,779.8927000003459,58.27769999996235
+q094,5,product,True,,"SELECT AVG(product_weight_g) AS average_product_weight
+FROM products
+WHERE product_weight_g IS NOT NULL;",0,"products,category_translation",simple,0.0,191,26,1125.2536000029068,51.03919999965001
+q095,5,customer,True,,"SELECT COUNT(DISTINCT o.customer_id) AS true_one_time_customers
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+WHERE c.customer_unique_id IN (
+    SELECT customer_unique_id
+    FROM customers
+    GROUP BY customer_unique_id
+    HAVING COUNT(*) = 1
+);",0,"orders,stg_orders,customers,stg_customers",simple,0.0,235,70,1744.4338999994216,126.49269999928947
+q096,5,product,True,,"SELECT COUNT(DISTINCT oi.product_id) AS distinct_missing_product_ids
+FROM order_items oi
+LEFT JOIN products p ON oi.product_id = p.product_id
+WHERE p.product_id IS NULL;",0,"orders,stg_orders,products,category_translation",simple,0.0,298,44,1446.8749000006937,84.59320000110893
+q097,5,payments,True,,"SELECT SUM(op.payment_value) AS total_payment_value
+FROM orders o
+LEFT JOIN order_payments op ON o.order_id = op.order_id
+WHERE op.order_id IS NULL;",0,"orders,stg_orders,order_payments",simple,0.0,197,41,982.5929999969958,84.85950000067533
+q098,5,sales,True,,"SELECT SUM(order_items.price) AS total_price
+FROM products
+JOIN order_items ON products.product_id = order_items.product_id
+WHERE products.product_category_name = 'nonexistent_category_xyz';",0,"orders,stg_orders,order_items,products,category_translation",join,0.00030255,629,347,6186.861500000305,6250.671799998599
+q099,5,customer,True,,"SELECT AVG(geolocation_lat) AS average_latitude
+FROM geolocation
+WHERE geolocation_zip_code_prefix = '24220';",0,"customers,stg_customers,geolocation",simple,0.0,165,31,782.6590000004217,70.81409999955213
+q100,5,reviews,True,,"SELECT COUNT(*) AS total_review_count
+FROM order_reviews
+WHERE order_id IN (
+    SELECT order_id
+    FROM order_reviews
+    GROUP BY order_id
+    HAVING COUNT(*) > 1
+);",0,"orders,stg_orders,order_reviews",simple,0.0,214,47,1153.793899997254,112.54720000033558
