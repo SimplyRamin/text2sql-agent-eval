@@ -2,53 +2,57 @@
 
 ## Comparison table
 
-| Architecture | Overall | T1 | T2 | T3 | T4 | T5 | Cost (100 q) | Latency (mean / median) |
-|---|---|---|---|---|---|---|---|---|
-| **Local** — dumb baseline | 66% | 100% | 80% | 40% | 68% | 60% | $0 | not instrumented* |
-| **Local** — routed agent | **70%** | 100% | 84% | 60% | 64% | 53.3% | $0 | ~21s / ~15s** |
-| **Hosted** (gpt-4o-mini) — dumb baseline | 80% | 100% | 92% | 72% | 64% | 86.7% | ~$0.01 | ~1.3s / ~1.4s** |
-| **Hosted** (gpt-4o-mini) — routed agent | **81%** | 100% | 84% | 72% | 72% | 93.3% | ~$0.04 | ~5.8s / ~4.3s** |
+| Architecture | Overall | T1 | T2 | T3 | T4 | T5 |
+|---|---|---|---|---|---|---|
+| **Local** (Qwen2.5-Coder-7B) — dumb baseline | 66% | 100% | 80% | 40% | 68% | 60% |
+| **Local** — routed agent | **69%** | 100% | 80% | 56% | 60% | 66.7% |
+| **Hosted** (gpt-4o-mini) — dumb baseline | 79% | 100% | 92% | 72% | 60% | 86.7% |
+| **Hosted** — routed agent | **84%** | 100% | 92% | 76% | 72% | 93.3% |
 
-\* Latency instrumentation was added in Phase 6; the earliest local run
-predates it.
-\*\* Cost/latency figures are from each architecture's first fresh run
-(Phase 6/7) — scoring was later corrected (see below), which doesn't
-change actual call cost or response time, only which answers count as
-correct.
-
-Local model: Qwen2.5-Coder-7B via Ollama, RTX 3050 (6GB VRAM). Hosted
-model: gpt-4o-mini via AvalAI (OpenAI-compatible gateway, pricing matches
-official OpenAI rates). Single runs; retry temperature (0.4) makes
-results non-deterministic on close cases — read as accuracy ± some
-variance (see `FAILURE_TAXONOMY.md` §6).
+Local: Ollama, RTX 3050 (6GB VRAM), $0/query. Hosted: gpt-4o-mini via
+AvalAI (OpenAI-compatible, pricing matches official OpenAI rates),
+~$0.02-0.04 per full 100-question run. Single runs; retry temperature
+(0.4) and hosted API calls both carry inherent run-to-run variance —
+read as accuracy ± a few points, not exact figures (see
+`FAILURE_TAXONOMY.md` §6).
 
 ## What the numbers show
 
-**Routing beats the dumb baseline consistently, on both models.** Local:
-66%→70%. Hosted: 80%→81%. Tier 3 (three-and-more-table joins) shows the
-clearest, most consistent gain from the agent architecture across both
-models — local +20pp, hosted +0pp this round but was the target of two
-concrete, validated interventions (explicit join-key hints, join-path
-reasoning) that measurably fixed real Binder Errors during development.
+**Routing consistently beats the dumb baseline, on both models: local
++3pp, hosted +5pp.** The larger hosted gain is notable — a stronger base
+model had more room to benefit from schema retrieval and self-correction
+on the questions it was already close to getting right, rather than the
+scaffolding being wasted on out-of-reach questions.
 
-**A significant mid-project correction is part of this story, not hidden
-from it:** an early tolerance bug in the scoring harness (`abs_tol=1e-6`,
-tighter than the ~0.005 gap a 2-decimal `ROUND()` in ground truth can
-create against an unrounded-but-correct model answer) was silently
-penalizing every architecture on aggregation-heavy questions (tier 4
-specifically). Found by digging into *why* tier 4 was unexpectedly weak
-everywhere rather than accepting it, confirmed with a concrete example
-(ground truth 4.16 vs. model's unrounded 4.155716524320005), and fixed.
-Every reference run was re-graded under the corrected scorer before being
-reported here — tier 4 improved 16-20pp across every architecture, and
-one earlier finding (hosted routing appeared to slightly *hurt* accuracy)
-turned out to be entirely a scorer artifact and was reversed once fixed.
+**Two real bugs were found and fixed during evaluation, and both mattered
+more than any single prompt-engineering change:**
 
-**Cost and latency remain a real, practical tradeoff independent of the
-correction.** Hosted inference cost about a nickel total for a full
-100-question run, at roughly 1-6 seconds per query. Local inference is
-free but 15-20x slower per query on this hardware (RTX 3050, 6GB VRAM) —
-a genuine deployment consideration distinct from which architecture
-scores higher.
+1. A scorer tolerance bug (`abs_tol=1e-6`) was tighter than the rounding
+   gap a 2-decimal `ROUND()` in ground truth can create against an
+   unrounded-but-correct answer — silently penalizing every architecture
+   on aggregation questions (tier 4). Confirmed with a concrete case
+   (ground truth 4.16 vs. model's unrounded 4.155716524320005) and fixed
+   (`abs_tol=0.01`). Every reference run was re-graded before being
+   reported here.
+2. The dedup-checklist prompt told the model to use `COUNT(DISTINCT ...)`
+   to avoid double-counting, but didn't say *which* column was safe to
+   deduplicate on — leading the model to deduplicate on
+   `order_item_id`, a per-order sequence number that repeats across
+   different orders, silently undercounting. Fixed by specifying which
+   columns are genuinely safe to deduplicate on, and by explicitly
+   permitting plain `COUNT(*)` when there's no real fan-out risk.
 
-Full failure-mode breakdown: see `FAILURE_TAXONOMY.md`.
+An earlier finding — that routing appeared to slightly *hurt* accuracy on
+the hosted model — turned out to be entirely an artifact of these two
+bugs stacked together, not a real cross-model generalization problem.
+Worth stating directly: **the process of finding and fixing these bugs is
+as much the point of this project as the final accuracy numbers.**
+
+**Tier 3 (three-and-more-table joins)** improved the most from targeted,
+validated interventions — explicit join-key hints and a join-path-
+reasoning instruction, each fixing specific, named question IDs (see
+`FAILURE_TAXONOMY.md` §1).
+
+Full failure-mode breakdown, including which categories were fixed and
+which were correctly left alone (model-knowledge gaps no architecture
+change can address): see `FAILURE_TAXONOMY.md`.

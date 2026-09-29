@@ -91,13 +91,17 @@ subquery aliased `r`, then referenced a column that subquery never
 selected), q077 (hosted run: `Referenced table "op" not found! Candidate
 tables: "subquery"` — same shape, on a different model).
 
-**Note on an earlier, now-corrected finding:** an initial hosted run
-appeared to show routing slightly *hurting* accuracy (70% vs 71%
-baseline) — later found to be an artifact of a scorer tolerance bug
-(see DECISIONS.md, 2026-09-29), not a real cross-model generalization
-problem. After the fix, routing improves accuracy on both local and
-hosted models. q077 remains a real, individual example of this failure
-category, but does not represent an aggregate trend.
+**Note on a since-corrected finding:** an initial hosted run appeared to
+show routing slightly *hurting* accuracy (70% vs 71% baseline). This
+turned out to be caused by two compounding bugs, not a real cross-model
+generalization problem: a scorer tolerance bug penalizing correctly-
+rounded answers (see DECISIONS.md, 2026-09-29), and a dedup-checklist
+gap that caused the routed agent to deduplicate on a non-unique column
+(order_item_id) on two tier-2 questions it should have easily passed.
+After both fixes, routing improves accuracy on both local (+3pp) and
+hosted (+5pp) models, consistently. q021/q025 remain real, standalone
+examples of this failure category (unnecessary structural complexity),
+but do not represent an aggregate cross-model trend.
 
 **Not fixed:** No prompt change was made for this class. Fixing it would
 mean walking back the reasoning instruction that's also directly
