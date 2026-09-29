@@ -39,7 +39,7 @@ def _values_equal(a, b) -> bool:
     if a is None or b is None:
         return a is None and b is None
     if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-        return math.isclose(a, b, rel_tol=1e-4, abs_tol=1e-6)
+        return math.isclose(a, b, rel_tol=1e-4, abs_tol=0.01)
     return a == b
 
 

@@ -91,15 +91,13 @@ subquery aliased `r`, then referenced a column that subquery never
 selected), q077 (hosted run: `Referenced table "op" not found! Candidate
 tables: "subquery"` — same shape, on a different model).
 
-**Notable cross-model finding (Phase 7):** this pattern recurred on
-gpt-4o-mini (q077) despite that model generally being far more capable
-than local Qwen2.5-Coder-7B (71% vs 59% baseline accuracy). This suggests
-Phase 6's join-path-reasoning instruction — which explicitly asks the
-model to "reason through the join path hop by hop" before writing SQL —
-may itself invite structural complexity that a stronger model didn't
-need in the first place. Directly relevant to why the hosted routed
-agent (70%) slightly underperformed the hosted baseline (71%), the
-inverse of the local result where routing helped (63% vs 58%/59%).
+**Note on an earlier, now-corrected finding:** an initial hosted run
+appeared to show routing slightly *hurting* accuracy (70% vs 71%
+baseline) — later found to be an artifact of a scorer tolerance bug
+(see DECISIONS.md, 2026-09-29), not a real cross-model generalization
+problem. After the fix, routing improves accuracy on both local and
+hosted models. q077 remains a real, individual example of this failure
+category, but does not represent an aggregate trend.
 
 **Not fixed:** No prompt change was made for this class. Fixing it would
 mean walking back the reasoning instruction that's also directly

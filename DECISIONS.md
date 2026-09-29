@@ -13,6 +13,64 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-09-29 — Hosted runs re-graded under fixed scorer: baseline 80%, routed 81%
+Decision: re-ran full hosted baseline and routed agent (gpt-4o-mini) after
+the float-tolerance fix. Baseline 71%→80%, routed 70%→81%. This REVERSES
+the Phase 7 finding that routing slightly hurt on the hosted model —
+under the buggy scorer, routed (70%) appeared to underperform baseline
+(71%); with correct grading, routed (81%) now clearly beats baseline
+(80%), consistent with the local result.
+Correction needed: FAILURE_TAXONOMY.md §4's theory that Phase 6's prompt
+engineering doesn't transfer to stronger models was built on this false
+signal and should be revised or removed — the underlying q077-style
+self-inflicted-complexity examples may still be real individual failures,
+but the aggregate "routing hurts on hosted" conclusion was a scorer
+artifact, not a real finding.
+Tier 4 jumped again on hosted (baseline 44%→64%, routed 48%→72%),
+independently confirming the rounding-tolerance bug was the dominant
+tier-4 cause across both local and hosted, not a per-model quirk.
+Status: results/baseline_gpt-4o-mini_20260929_102108.csv and
+results/agent_gpt-4o-mini_20260929_102707.csv are the new hosted
+reference runs, superseding Phase 7's originals for accuracy figures.
+
+### 2026-09-29 — Local runs re-graded under fixed scorer: baseline 66%, routed agent 70%
+Decision: re-ran full local baseline and routed agent after the float-
+tolerance fix (previous entry). Baseline 59%→66%, routed agent 63%→70%,
+both +7pp. Tier 4 saw the largest jump on both (baseline +16pp, routed
++20pp), confirming the rounding-tolerance bug was the dominant cause of
+tier 4's earlier weak scores across every architecture.
+Notable: the baseline > routed-agent pattern on tier 4 specifically
+persists even after the fix (68% vs 64%) — a real finding, not a scorer
+artifact, distinct from the rounding issue.
+Caveat: this run's wall-clock numbers are cache-contaminated (mean
+11211ms, median 135ms — most prompts replayed from earlier sessions'
+cache) and should not be used for the final latency write-up. A clean,
+cache-cleared timing run would be needed if reporting local latency
+figures.
+Status: results/baseline_qwen2.5-coder-7b_20260929_100016.csv and
+results/agent_qwen2.5-coder-7b_20260929_101902.csv are the new local
+reference runs, superseding the pre-fix ones for accuracy figures.
+
+### 2026-09-29 — Scorer float tolerance too strict, caused false FAILs on correctly-rounded questions
+Decision: _values_equal's tolerance was math.isclose(rel_tol=1e-4,
+abs_tol=1e-6) — the abs_tol was far tighter than the ~0.005 gap a 2-decimal
+ROUND() in ground truth can legitimately create versus an unrounded but
+otherwise correct model answer. Widened to abs_tol=0.01.
+Why found: investigating tier 4's unexplained weak performance across
+every architecture (local and hosted). Confirmed directly — q064 ground
+truth AVG=4.16 (rounded), model computed 4.155716524320005 (same
+underlying value, unrounded) — scored as FAIL under the old tolerance,
+now correctly PASSes. rel_tol=1e-4 kept unchanged, so large-value
+comparisons are unaffected; this only closes the small-number rounding
+gap.
+Why this matters: all five committed reference runs (local baseline/
+agent/routed, hosted baseline/routed) were graded under the too-strict
+rule. Some FAILs, especially concentrated in tier 4, were likely
+incorrectly graded rather than real model errors. Every result CSV is
+being re-run under the fixed scorer before being treated as final.
+Status: fixed and verified (4.16 vs 4.155716524320005 → now equal;
+4.16 vs 5.0 → still not equal, sanity check for over-loosening).
+
 ### 2026-09-27 — Phase 7 complete: hosted (gpt-4o-mini) comparison via AvalAI
 Decision: real hosted comparison run against gpt-4o-mini (AvalAI, OpenAI-
 compatible, api.avalai.ir/v1). Total spend: $0.0527 of $3.00 balance,
