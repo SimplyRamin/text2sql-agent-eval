@@ -5,7 +5,7 @@ at the start of every session.
 
 ---
 
-## 2. Repo setup — do this before any chat
+## 1. Repo setup — do this before any chat
 
 **Name:** `text2sql-agent-eval` — public from day one.
 
@@ -53,7 +53,7 @@ what makes this credible.
 
 ---
 
-## 3. How chat and Claude Code fit together
+## 2. How chat and Claude Code fit together
 
 **They share nothing.** Separate contexts, no shared memory. Claude Code can debug for two
 hours and chat will know none of it. Chat can design your whole eval methodology and Claude
@@ -94,7 +94,7 @@ Sessions don't persist; those two files are your continuity.
 
 ---
 
-## 4. What you write yourself
+## 3. What you write yourself
 
 **Write yourself — the two files you'll be asked about in interviews:**
 
@@ -124,7 +124,7 @@ the budget better than any tracker.
 
 ---
 
-## 5. Phase sequence
+## 4. Phase sequence
 
 | # | Phase | Where | Model | Cost |
 |---|---|---|---|---|
@@ -151,7 +151,7 @@ LangGraph demo, and building it first is what forces the agent to be honest.
 
 ---
 
-## 6. Budget discipline
+## 5. Budget discipline
 
 Ceiling set at **$3**, not $5 — leave headroom for the mistake you haven't thought of.
 
@@ -186,7 +186,7 @@ You'll likely finish under a dollar.
 
 ---
 
-## 7. What this produces
+## 6. What this produces
 
 A resume bullet with real numbers instead of adjectives, and — more importantly — forty
 minutes of specific things to say about *why* particular queries failed. That specificity is what the project is for.
