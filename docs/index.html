@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>text2sql-agent-eval: results explorer</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --line:#d0d7de; --panel:#f6f8fa; --ok:#1a7f37; --bad:#cf222e; --accent:#0969da; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#30363d; --panel:#161b22; --ok:#3fb950; --bad:#f85149; --accent:#4493f8; }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:1000px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; }
+  h2 { font-size:1.2rem; margin:32px 0 8px; }
+  a { color:var(--accent); }
+  .muted { color:var(--muted); font-size:.9rem; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; white-space:nowrap; }
+  th { background:var(--panel); }
+  .controls { display:flex; flex-wrap:wrap; gap:10px 20px; align-items:center; margin:10px 0; }
+  .controls label { cursor:pointer; }
+  input[type=search] { width:100%; max-width:420px; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; }
+  select { width:100%; padding:4px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; font-size:.9rem; }
+  .seg { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+  .seg button { padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; font-size:.9rem; cursor:pointer; }
+  .seg button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .codes { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:720px) { .codes { grid-template-columns:1fr; } }
+  .codes h3 { margin:0 0 4px; font-size:.95rem; }
+  pre { margin:0; padding:10px; background:var(--panel); border:1px solid var(--line); border-radius:6px; white-space:pre-wrap; word-break:break-word; font:.85rem/1.45 ui-monospace, Menlo, Consolas, monospace; }
+  #status { font-weight:600; font-size:1.1rem; margin:12px 0 4px; }
+  .ok { color:var(--ok); }
+  .bad { color:var(--bad); }
+  dl { display:grid; grid-template-columns:max-content 1fr; gap:4px 16px; margin:12px 0; }
+  dt { color:var(--muted); }
+  dd { margin:0; }
+  #strip tbody tr { cursor:pointer; }
+  #strip tr.sel td { background:var(--panel); font-weight:600; }
+  details { margin-top:24px; }
+  summary { cursor:pointer; }
+</style>
+</head>
+<body>
+<main>
+  <h1>text2sql-agent-eval: results explorer</h1>
+  <p class="muted">100 questions over an Olist e-commerce warehouse, 5 difficulty tiers, 4 architectures.
+    This is a replay of committed results; nothing runs live.
+    <a href="https://github.com/YOUR-USERNAME/text2sql-agent-eval">Source code and build log</a>.</p>
+  <noscript><p>This page needs JavaScript.</p></noscript>
+
+  <h2>Comparison</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr id="cmp-head"></tr></thead>
+      <tbody id="cmp-body"></tbody>
+    </table>
+  </div>
+  <p id="spend" class="muted"></p>
+  <p class="muted">Single runs. Retry temperature (0.4) and hosted API calls both add run-to-run variance,
+    so read these as accuracy ± a few points.</p>
+
+  <h2>Question explorer</h2>
+  <div class="controls">
+    <span>Tier:</span>
+    <span id="tiers" class="controls"></span>
+    <label><input type="checkbox" id="disagree"> Only questions where architectures disagree</label>
+  </div>
+  <input type="search" id="search" placeholder="Filter by id or words from the question">
+  <p id="count" class="muted"></p>
+  <select id="qlist" size="9" aria-label="Questions"></select>
+
+  <div class="seg" id="archs" role="group" aria-label="Architecture"></div>
+
+  <p id="empty" hidden>No question matches these filters.</p>
+  <section id="answer">
+    <h3 id="qhead"></h3>
+    <p id="qtext"></p>
+    <div id="status"></div>
+    <pre id="note" hidden></pre>
+    <div class="codes">
+      <div><h3>Ground-truth SQL</h3><pre id="gt"></pre></div>
+      <div><h3>Generated SQL</h3><pre id="gen"></pre></div>
+    </div>
+    <dl id="details"></dl>
+    <h3>All four architectures on this question</h3>
+    <div class="scroll">
+      <table id="strip">
+        <thead><tr><th>Architecture</th><th>Result</th></tr></thead>
+        <tbody id="strip-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details>
+    <summary>How correctness is judged</summary>
+    <p>Correct means the <strong>result set</strong> matches the ground truth, not the SQL text.
+      Column names and column order are ignored. Numbers match within 0.01 (or 0.01% for large values).
+      Row order only matters when the question asks for an order. NULL matches NULL.
+      So a query that looks different from the ground truth can still be marked correct.</p>
+  </details>
+</main>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  const D = window.DATA;
+  const TIERS = ["All", "T1", "T2", "T3", "T4", "T5"];
+  const state = { tier: "All", disagree: false, search: "", qid: "q040", arch: "local_routed" };
+
+  const $ = (id) => document.getElementById(id);
+  function make(tag, text, cls) {
+    const e = document.createElement(tag);
+    if (text !== undefined) e.textContent = text;
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  function renderComparison() {
+    const cols = Object.keys(D.comparison[0]);
+    $("cmp-head").replaceChildren(...cols.map((c) => make("th", c)));
+    $("cmp-body").replaceChildren(...D.comparison.map((row) => {
+      const tr = make("tr");
+      cols.forEach((c) => tr.appendChild(make("td", row[c])));
+      return tr;
+    }));
+    $("spend").textContent = D.spend;
+  }
+
+  function buildControls() {
+    $("tiers").replaceChildren(...TIERS.map((t) => {
+      const label = make("label");
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "tier";
+      input.checked = t === state.tier;
+      input.addEventListener("change", () => { state.tier = t; renderList(); });
+      label.append(input, " " + t);
+      return label;
+    }));
+    $("archs").replaceChildren(...D.archs.map((a) => {
+      const b = make("button", a.label);
+      b.type = "button";
+      b.dataset.key = a.key;
+      b.addEventListener("click", () => { state.arch = a.key; renderAnswer(); });
+      return b;
+    }));
+    $("disagree").addEventListener("change", (e) => { state.disagree = e.target.checked; renderList(); });
+    $("search").addEventListener("input", (e) => { state.search = e.target.value; renderList(); });
+    $("qlist").addEventListener("change", (e) => { state.qid = e.target.value; renderAnswer(); });
+  }
+
+  function visible() {
+    const s = state.search.trim().toLowerCase();
+    const firstArch = D.archs[0].key;
+    return D.questions.filter((q) => {
+      if (state.tier !== "All" && "T" + q.tier !== state.tier) return false;
+      if (state.disagree && !q.disagree) return false;
+      if (!s) return true;
+      const full = D.answers[q.id][firstArch].question.toLowerCase();
+      return q.id.includes(s) || full.includes(s);
+    });
+  }
+
+  function renderList() {
+    const list = visible();
+    const sel = $("qlist");
+    sel.replaceChildren(...list.map((q) => {
+      const o = make("option", q.label);
+      o.value = q.id;
+      return o;
+    }));
+    $("count").textContent = list.length + " of " + D.questions.length + " questions";
+    if (!list.some((q) => q.id === state.qid)) state.qid = list.length ? list[0].id : null;
+    if (state.qid) sel.value = state.qid;
+    renderAnswer();
+  }
+
+  function renderAnswer() {
+    $("answer").hidden = !state.qid;
+    $("empty").hidden = !!state.qid;
+    if (!state.qid) return;
+
+    const a = D.answers[state.qid][state.arch];
+    $("qhead").textContent = state.qid + " · Tier " + a.tier + " · " + a.category;
+    $("qtext").textContent = a.question;
+
+    const st = $("status");
+    st.textContent = a.correct ? "✅ Correct" : "❌ Incorrect";
+    st.className = a.correct ? "ok" : "bad";
+    $("note").textContent = a.note;
+    $("note").hidden = !a.note;
+
+    $("gt").textContent = a.ground_truth_sql;
+    $("gen").textContent = a.generated_sql;
+
+    const rows = [["Row order matters", a.ordered ? "yes" : "no"]];
+    if (a.route !== null) {
+      rows.push(["Route", a.route], ["Retries used", String(a.retries_used)],
+                ["Tables retrieved (first pass)", a.retrieved_tables]);
+    }
+    rows.push(["Cost", a.cost_display], ["Latency", a.latency_display]);
+    const dl = $("details");
+    dl.replaceChildren();
+    rows.forEach(([k, v]) => dl.append(make("dt", k), make("dd", v)));
+
+    $("strip-body").replaceChildren(...D.archs.map((x) => {
+      const r = D.answers[state.qid][x.key];
+      const tr = make("tr");
+      if (x.key === state.arch) tr.className = "sel";
+      tr.append(make("td", x.label), make("td", r.correct ? "✅ correct" : "❌ incorrect"));
+      tr.addEventListener("click", () => { state.arch = x.key; renderAnswer(); });
+      return tr;
+    }));
+
+    for (const b of $("archs").children) {
+      b.setAttribute("aria-pressed", String(b.dataset.key === state.arch));
+    }
+    try { history.replaceState(null, "", "#" + state.qid + "/" + state.arch); } catch (e) { /* ignore */ }
+  }
+
+  function readHash() {
+    const m = location.hash.match(/^#(q\d{3})\/(\w+)$/);
+    if (m && D.answers[m[1]] && D.answers[m[1]][m[2]]) {
+      state.qid = m[1];
+      state.arch = m[2];
+    }
+  }
+
+  renderComparison();
+  buildControls();
+  readHash();
+  renderList();
+})();
+</script>
+</body>
+</html>
