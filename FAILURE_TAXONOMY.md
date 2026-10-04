@@ -14,11 +14,12 @@ wrong table, or collapses a two-hop join into one step.
 **Examples:** q040 (Phase 5: `op.customer_id` — order_payments has no
 direct customer_id, needs orders as bridge), q050, q057.
 
-**What helped:** Schema retrieval narrowing the table set (Phase 5) gave
-partial improvement (T3: 32%→40% vs baseline). Phase 6's `FK_HINTS` +
-explicit join-path-reasoning instruction pushed further (T3: 40%→52%,
-+20pp cumulative vs baseline) — making the join path explicit rather than
-inferred from column-naming convention directly targeted this class.
+**What helped:** Schema retrieval with capped retries (Phase 5), then Phase 6's `FK_HINTS`
+and explicit join-path-reasoning instruction, targeted this class directly. On the local
+model, tier 3 went from 40% (single-call baseline) to 56% (routed agent), graded with the
+corrected scorer; on the hosted model it moved from 72% to 76%. Intermediate Phase 5
+figures were graded under the earlier, too-strict scorer and were not re-run, so they are
+not quoted here.
 
 **What didn't fully close it:** Even with FK_HINTS, some 3+-table
 questions still fail after full retry budget — the hint block only
