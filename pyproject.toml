@@ -5,6 +5,7 @@ description = "Text-to-SQL agent over an Olist warehouse, evaluated for executio
 requires-python = ">=3.11"
 dependencies = [
     "duckdb>=1.5.5",
+    "gradio>=6.29.1",
     "langchain-core>=1.5.3",
     "langgraph>=1.2.10",
     "litellm>=1.95.0",
