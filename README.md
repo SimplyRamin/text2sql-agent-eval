@@ -1,5 +1,7 @@
 # text2sql-agent-eval
 
+**Live results explorer:** https://YOUR-USERNAME.github.io/text2sql-agent-eval/
+
 A text-to-SQL analytics agent over an Olist e-commerce warehouse (dbt staging ->
 intermediate -> marts), evaluated for execution accuracy across architectures:
 a single-call baseline, a LangGraph agent with schema retrieval and capped
