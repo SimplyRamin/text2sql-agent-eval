@@ -13,6 +13,29 @@ consistently, and what you'll need in an interview six months from now.
 
 ## Log
 
+### 2026-10-04 — Public demo: static site on GitHub Pages, not a Hugging Face Gradio Space
+Decision: the public demo is a static page served from docs/ via GitHub
+Pages. demo/build_static.py precomputes every display string (answers,
+cost/latency wording, comparison table) for all 100 questions x 4
+architectures into docs/data.js, importing the tested logic from
+demo/app.py; docs/index.html only renders it. demo/app.py stays as a
+local Gradio explorer.
+Why: Hugging Face now requires a paid plan (PRO) to create Gradio or
+Docker Spaces; only Static Spaces are free. I had told myself a CPU
+Basic Gradio Space would be free after reading the 2-Space ZeroGPU cap
+and not checking further. A 402 at create_repo showed otherwise, before
+anything was uploaded. Since the demo only replays committed results,
+no server is needed.
+Also caught before deploying: demo/requirements.txt pinned pandas==2.2.3
+while everything was tested locally on 3.0.5, and the Space frontmatter
+pinned gradio 6.28.0 while 6.29.1 was installed. Lesson: pin deployed
+dependencies to the versions actually tested.
+Maintenance: docs/data.js is generated. After any change to the
+reference CSVs, re-run `uv run python demo/build_static.py` and commit
+docs/, or the site shows stale numbers.
+Status: live. Scratch debugging scripts removed from the repo root in a
+separate commit.
+
 ### 2026-09-29 — Final reference results after dedup fix and full re-run
 Decision: final numbers after all fixes this session (scorer tolerance,
 dedup checklist column-uniqueness). Local baseline 66%, local routed 69%
