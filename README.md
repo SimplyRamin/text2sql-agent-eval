@@ -1,6 +1,6 @@
 # text2sql-agent-eval
 
-**Live results explorer:** https://YOUR-USERNAME.github.io/text2sql-agent-eval/
+**Live results explorer:** https://simplyramin.github.io/text2sql-agent-eval/
 
 A text-to-SQL analytics agent over an Olist e-commerce warehouse (dbt staging ->
 intermediate -> marts), evaluated for execution accuracy across architectures:

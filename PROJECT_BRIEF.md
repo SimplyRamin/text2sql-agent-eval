@@ -5,62 +5,6 @@ at the start of every session.
 
 ---
 
-## 1. Context primer
-
-Paste this block into the **first chat message** of the new project.
-
-```
-CONTEXT — carry-over from a previous project.
-
-WHO: Ramin Ferdos, Senior AI Engineer, 7+ years, based in Tehran, currently at
-Tabiat Makan Industrial Group (FMCG holding). Job searching internationally for
-roles requiring visa sponsorship — UK, Netherlands, Germany, Finland, Norway,
-Spain primary.
-
-POSITIONING DECISION (already made, do not relitigate): applying as Senior AI
-Engineer, not Data Scientist. The last 14 months of work is agent orchestration,
-RAG, and production ML systems; sponsorship is easier to justify for a thinner
-applicant pool; DS evidence at senior level is weaker. Causal inference and
-experimentation are the 3-5 year direction, deliberately parked.
-
-WHY THIS PROJECT: All of my strongest work — a 14-agent LLM analytics platform,
-a RAG chatbot across 5 knowledge bases, a production PWA — lives in private org
-repos no recruiter can see. My only public artifacts are a churn model and a
-full-stack app, which read as data science and web dev, not AI engineering. This
-project is the public mirror of the private work.
-
-WHAT: A text-to-SQL analytics agent over an Olist e-commerce warehouse I already
-built (dbt staging -> intermediate -> marts, 6 data quality tests, Prefect
-orchestration). LangGraph for the agent. The POINT of the project is the
-evaluation harness, not the agent — execution accuracy against ground truth,
-compared across architectures.
-
-BUILD ORDER (non-negotiable — evals come FIRST):
-1. Eval harness + ~100 stratified questions with ground-truth SQL. No LLM needed.
-2. Dumb baseline: one call, schema in prompt, SQL out. Record accuracy.
-3. LangGraph agent: schema retrieval, generation, execution, capped self-correction.
-4. Routing + specialist paths. Measure accuracy AND cost AND latency.
-5. Write-up: comparison table + failure taxonomy.
-
-HARD CONSTRAINTS:
-- Total budget: $3 ceiling enforced in code (budget.py raises, not warns).
-- Develop entirely against LOCAL Qwen2.5-Coder-7B via Ollama on an M3 Pro Mac.
-  Hosted API calls ONLY for final comparison runs.
-- Content-hashed disk cache on every call. temperature=0 throughout.
-- Cap self-correction retries at 2.
-- Schema retrieval, not full-schema-in-prompt.
-- Provider-agnostic LLM wrapper (LiteLLM or ~10 lines) — using an Iranian-accessible
-  API reseller, so endpoints may be unstable.
-- Dry-run token estimate before EVERY paid run. Then 10 questions, check, then 90.
-
-TOOLING: Claude Code builds. Chat decides. See PROJECT_BRIEF.md in the repo.
-
-KNOWN GAPS this project closes: LangGraph/LangChain (no production experience),
-and having any publicly inspectable agentic system at all.
-```
-
----
-
 ## 2. Repo setup — do this before any chat
 
 **Name:** `text2sql-agent-eval` — public from day one.
@@ -245,8 +189,7 @@ You'll likely finish under a dollar.
 ## 7. What this produces
 
 A resume bullet with real numbers instead of adjectives, and — more importantly — forty
-minutes of specific things to say about *why* particular queries failed. That specificity
-is exactly what was missing in the Holidu conversation.
+minutes of specific things to say about *why* particular queries failed. That specificity is what the project is for.
 
 The comparison table is the artifact. Local 7B at X% execution accuracy, hosted model at
 Y%, at Z times the cost per query, with a breakdown of where the gap actually sits. Almost
