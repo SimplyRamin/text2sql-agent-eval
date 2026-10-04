@@ -48,10 +48,9 @@ bugs stacked together, not a real cross-model generalization problem.
 Worth stating directly: **the process of finding and fixing these bugs is
 as much the point of this project as the final accuracy numbers.**
 
-**Tier 3 (three-and-more-table joins)** improved the most from targeted,
-validated interventions — explicit join-key hints and a join-path-
-reasoning instruction, each fixing specific, named question IDs (see
-`FAILURE_TAXONOMY.md` §1).
+On the local model, three-plus-table joins went from 40% to 56%. On the hosted model the
+largest gain was on aggregation questions (60% to 72%). With 25 questions per tier and single
+runs, treat tier-level differences as suggestive, not conclusive.
 
 Full failure-mode breakdown, including which categories were fixed and
 which were correctly left alone (model-knowledge gaps no architecture
